@@ -1,0 +1,68 @@
+{
+	"name": "Add_missing_data",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SapTableSource",
+						"rfcTableOptions": "BUDAT LIKE '201108%'",
+						"customRfcReadTableFunctionModule": "",
+						"partitionOption": "None",
+						"sapDataColumnDelimiter": "|"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_saptable_ecc",
+						"type": "DatasetReference",
+						"parameters": {
+							"tb_name": "BSIS"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "BSIS",
+							"Schema": "stage_slt"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SWO_Testing"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-11T05:19:52Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

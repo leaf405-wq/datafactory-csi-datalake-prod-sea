@@ -1,0 +1,302 @@
+{
+	"name": "Unit_Test",
+	"properties": {
+		"activities": [
+			{
+				"name": "Log Result",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get SQL Row Count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(\n    variables('C4C_Row_Count'),\n    string(activity('Get SQL Row Count').output.firstrow.TotalCount)\n)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Update Log with Failure",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "INSERT INTO dbo.C4C__JobLog (JobName,JobDate,JobUser,JobStatus,CallingModule,JobLevel) OUTPUT INSERTED.JobStatus Values (\n    '@{pipeline().parameters.Pipeline_Name}',\n    '@{FormatDateTime(pipeline().parameters.Job_Date,'yyyy-MM-dd HH:MM:ss.FFF')}',\n    'MSADF',\n    '@{\n        concat(\n            '** Warning **. Source and Destination count does not match. Rows in C4C Collection ',\n            pipeline().parameters.Collection_Name,\n            ': ',\n            variables('C4C_Row_Count'),\n            ', Total Rows in DB Table ',\n            pipeline().parameters.Table_Name,\n            ': ',\n            activity('Get SQL Row Count').output.firstrow.TotalCount\n        )\n    }',\n    '@{pipeline().parameters.Pipeline_ID}',\n    '4'\n)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Update Log with Success",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "INSERT INTO dbo.C4C__JobLog (JobName,JobDate,JobUser,JobStatus,CallingModule,JobLevel) OUTPUT INSERTED.JobStatus Values (\n    '@{pipeline().parameters.Pipeline_Name}',\n    '@{FormatDateTime(pipeline().parameters.Job_Date,'yyyy-MM-dd HH:MM:ss.FFF')}',\n    'MSADF',\n    '@{\n        concat(\n            'Success. Rows in C4C Collection ',\n            pipeline().parameters.Collection_Name,\n            ': ',\n            variables('C4C_Row_Count'),\n            ', Total Rows in DB Table ',\n            pipeline().parameters.Table_Name,\n            ': ',\n            activity('Get SQL Row Count').output.firstrow.TotalCount\n        )\n    }',\n    '@{pipeline().parameters.Pipeline_ID}',\n    '4'\n)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get SQL Row Count",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Get C4C Row Count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT count(*) AS TotalCount from @{Concat('dbo.',pipeline().parameters.Table_Name)}",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Get C4C Row Count",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.API_Type,'Standard')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Get C4C Row Count Custom",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"linkedServices": [
+									{
+										"referenceName": "SapCloudForCustomerStandardLinkedService",
+										"type": "LinkedServiceReference"
+									}
+								],
+								"url": {
+									"value": "https://@{pipeline().globalParameters.c4c_api_hostname}.crm.ondemand.com/sap/c4c/odata/cust/v1/c4cxodata/@{pipeline().parameters.Collection_Name}/$count",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "Basic",
+									"username": "MSADF",
+									"password": {
+										"type": "AzureKeyVaultSecret",
+										"store": {
+											"referenceName": "AzureKeyVaultLinkedService",
+											"type": "LinkedServiceReference"
+										},
+										"secretName": "c4c-api-password"
+									}
+								}
+							}
+						},
+						{
+							"name": "Store C4C Row Count Custom",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Get C4C Row Count Custom",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "C4C_Row_Count",
+								"value": {
+									"value": "@activity('Get C4C Row Count Custom').output.Response",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Get C4C Row Count Standard",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"linkedServices": [
+									{
+										"referenceName": "SapCloudForCustomerStandardLinkedService",
+										"type": "LinkedServiceReference"
+									}
+								],
+								"url": {
+									"value": "https://@{pipeline().globalParameters.c4c_api_hostname}.crm.ondemand.com/sap/c4c/odata/v1/c4codataapi/@{pipeline().parameters.Collection_Name}/$count",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "Basic",
+									"username": "MSADF",
+									"password": {
+										"type": "AzureKeyVaultSecret",
+										"store": {
+											"referenceName": "AzureKeyVaultLinkedService",
+											"type": "LinkedServiceReference"
+										},
+										"secretName": "c4c-api-password"
+									}
+								}
+							}
+						},
+						{
+							"name": "Store C4C Row Count Standard",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Get C4C Row Count Standard",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "C4C_Row_Count",
+								"value": {
+									"value": "@activity('Get C4C Row Count Standard').output.Response",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"Table_Name": {
+				"type": "string"
+			},
+			"Pipeline_ID": {
+				"type": "string"
+			},
+			"Pipeline_Name": {
+				"type": "string"
+			},
+			"Job_Date": {
+				"type": "string"
+			},
+			"Collection_Name": {
+				"type": "string"
+			},
+			"API_Type": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"C4C_Row_Count": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:23:32Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

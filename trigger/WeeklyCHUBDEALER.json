@@ -1,0 +1,42 @@
+{
+	"name": "WeeklyCHUBDEALER",
+	"properties": {
+		"description": "Run the DL to RBAC Weekdays at 2 pm GMT",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_RBAC_TruncateLoad_csi",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-07-23T05:31:00Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						20
+					],
+					"weekDays": [
+						"Monday",
+						"Wednesday",
+						"Tuesday",
+						"Thursday",
+						"Friday",
+						"Sunday",
+						"Saturday"
+					]
+				}
+			}
+		}
+	}
+}

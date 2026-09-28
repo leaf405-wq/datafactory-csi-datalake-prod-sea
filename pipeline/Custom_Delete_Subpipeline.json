@@ -1,0 +1,139 @@
+{
+	"name": "Custom_Delete_Subpipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy Data from C4C to SQL DB",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SapCloudForCustomerSource",
+						"query": "$select=ObjectID&$format=json",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBatchTimeout": "10:00:00",
+						"preCopyScript": {
+							"value": "Drop table if exists @{concat('DelRec.',pipeline().parameters.TableName)}",
+							"type": "Expression"
+						},
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SapC4cParameterizedCustomDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Name": {
+								"value": "@pipeline().parameters.CollectionName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": {
+								"value": "@pipeline().parameters.TableName",
+								"type": "Expression"
+							},
+							"Schema": "DelRec"
+						}
+					}
+				]
+			},
+			{
+				"name": "Delete Records",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy Data from C4C to SQL DB",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[Stage].[SP_DeleteRecords]",
+					"storedProcedureParameters": {
+						"CallingModule": {
+							"value": {
+								"value": "@pipeline().parameters.CallingModule",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"JobDate": {
+							"value": {
+								"value": "@{FormatDateTime(pipeline().TriggerTime,'yyyy-MM-dd HH:MM:ss.FFF')}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"JobName": {
+							"value": {
+								"value": "@pipeline().parameters.JobName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Table_Name": {
+							"value": {
+								"value": "@pipeline().parameters.TableName",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			},
+			"CollectionName": {
+				"type": "string"
+			},
+			"JobName": {
+				"type": "string"
+			},
+			"CallingModule": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Custom"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:23:33Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

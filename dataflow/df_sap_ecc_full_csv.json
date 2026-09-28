@@ -1,0 +1,55 @@
+{
+	"name": "df_sap_ecc_full_csv",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "ls_sapodp_ecc",
+						"type": "LinkedServiceReference"
+					},
+					"name": "srcsapecc"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "ls_blob_bods_stage",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkstg"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"parameters{",
+				"     odpname as string",
+				"}",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     store: 'SapOdp',",
+				"     format: 'sapObject',",
+				"     staged: true,",
+				"     context: 'SAPI',",
+				"     objectName: ($odpname),",
+				"     readMode: 'fullLoad',",
+				"     fixDecimalPrecision: true) ~> srcsapecc",
+				"srcsapecc sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delimited',",
+				"     container: 'bods-stage-data',",
+				"     folderPath: ($odpname),",
+				"     truncate: true,",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1) ~> sinkstg"
+			]
+		}
+	}
+}

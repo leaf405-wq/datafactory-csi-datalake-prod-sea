@@ -1,0 +1,42 @@
+{
+	"name": "tr_slt_delta_pastyears",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "SLT_Ingest_Datalake_Delta_ByDay_PastYears",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "slt",
+					"schedule": "daily",
+					"sync_type": "full",
+					"target_system": "datalake",
+					"src_system": "dev_delta_pastyears",
+					"interval_duration": "2",
+					"delta_type": "pastyears"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-08-20T05:30:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						6
+					]
+				}
+			}
+		}
+	}
+}

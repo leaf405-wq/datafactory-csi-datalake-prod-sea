@@ -1,0 +1,47 @@
+{
+	"name": "tr_cimdb_datalake_mon_to_fri_onceday",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_DL_CIM",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_DL_CIM",
+					"schedule": "mon_to_fri_onceday_0700",
+					"sync_type": "full",
+					"target_system": "datalake",
+					"src_system": "cs-cimdb"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-13T07:13:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						7
+					],
+					"weekDays": [
+						"Monday",
+						"Friday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday"
+					]
+				}
+			}
+		}
+	}
+}

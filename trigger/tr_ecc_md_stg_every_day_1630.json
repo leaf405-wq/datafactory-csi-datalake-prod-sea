@@ -1,0 +1,41 @@
+{
+	"name": "tr_ecc_md_stg_every_day_1630",
+	"properties": {
+		"description": "Every day PM 04:30",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_SSM_TTBL3",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_SSM_TTBL3",
+					"schedule": "every_day_1630",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-07-02T03:01:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						16
+					]
+				}
+			}
+		}
+	}
+}

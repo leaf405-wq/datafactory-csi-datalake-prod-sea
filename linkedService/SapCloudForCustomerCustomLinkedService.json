@@ -1,0 +1,24 @@
+{
+	"name": "SapCloudForCustomerCustomLinkedService",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SapCloudForCustomer",
+		"typeProperties": {
+			"url": "https://my370316.crm.ondemand.com/sap/c4c/odata/cust/v1/c4cxodata/",
+			"username": "MSADF",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-c4c-etl-password"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

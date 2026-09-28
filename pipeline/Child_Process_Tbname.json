@@ -1,0 +1,111 @@
+{
+	"name": "Child_Process_Tbname",
+	"properties": {
+		"activities": [
+			{
+				"name": "var_year",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_year",
+					"value": [
+						"H",
+						"I",
+						"G",
+						"Y",
+						"X",
+						"W",
+						"U",
+						"T",
+						"S",
+						"R",
+						"Q",
+						"P",
+						"O",
+						"N",
+						"M",
+						"L",
+						"K",
+						"J",
+						"F",
+						"E",
+						"D",
+						"C",
+						"B",
+						"A",
+						"S",
+						"Z",
+						"V"
+					]
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "var_year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_year')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Execute Pipeline01",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "SLT_Ingest_Datalake_Delta_init_01",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "slt",
+									"schedule": "daily",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": "test_table",
+									"var_year": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_year": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "SLT_INGEST/SLT_INGEST_DELTA/by_tbname"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:35:40Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

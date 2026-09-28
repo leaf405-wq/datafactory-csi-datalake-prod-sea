@@ -1,0 +1,73 @@
+{
+	"name": "ds_ftp_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Files01_Server",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"folderPath": "Prod"
+			},
+			"columnDelimiter": "|",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "CTRY",
+				"type": "String"
+			},
+			{
+				"name": "CTRYDESC",
+				"type": "String"
+			},
+			{
+				"name": "PLCTRY",
+				"type": "String"
+			},
+			{
+				"name": "PLCTRYDESC",
+				"type": "String"
+			},
+			{
+				"name": "CLUSTER",
+				"type": "String"
+			},
+			{
+				"name": "CLUSTERDESC",
+				"type": "String"
+			},
+			{
+				"name": "SUBREG",
+				"type": "String"
+			},
+			{
+				"name": "SUBREGDESC",
+				"type": "String"
+			},
+			{
+				"name": "REGION",
+				"type": "String"
+			},
+			{
+				"name": "REGIONDESC",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

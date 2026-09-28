@@ -1,0 +1,143 @@
+{
+	"name": "Child_Process_POF",
+	"properties": {
+		"activities": [
+			{
+				"name": "var_year",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_year",
+					"value": {
+						"value": "@range(2007, add(sub(int(formatDateTime(addToTime(utcNow(), 0, 'Year'), 'yyyy')), 2007), 1))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach_byyear",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "var_year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_year')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Exec_BYyear",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "JP_DP_POF1_Byyear",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "bods_JF_POF_ALL_TRAN_LOAD",
+									"schedule": "daily",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": {
+										"value": "Extractor(ECC)",
+										"type": "Expression"
+									},
+									"var_year": {
+										"value": "@string(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ForEach_byyear_copy1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "var_year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_year')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Exec_BYyear_copy1",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "JP_DP_POF2_Byyear",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "bods_JF_POF_ALL_TRAN_LOAD",
+									"schedule": "daily2",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": {
+										"value": "Extractor(ECC)",
+										"type": "Expression"
+									},
+									"var_year": {
+										"value": "@string(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_year": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "BODS Ingest/Bods_Ingest_Standard/bods_multi_source_project/JF_POF_ALL_TRAN_LOAD"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-01T14:36:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

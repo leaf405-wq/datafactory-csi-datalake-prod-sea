@@ -1,0 +1,407 @@
+{
+	"name": "Deletes_Subpipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Watermark Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select * from Stage.LookupTable_Deletes where Table_Name = '@{pipeline().parameters.TableName}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Error Log Lookup Activity",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Watermark Lookup",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Watermark Lookup').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',activity('Watermark Lookup').output.value[0].Collection_Name)}';",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Check mapping and Delete",
+				"description": "Check for mapping in Stage.LookupTable_deletes. If mapping found then continue with delete process and if not found then update dbo.C4C__JobLog with error message.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Watermark Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Watermark Lookup').output.count,0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Stored procedure for Deletes",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copy data from Azure table to DataLake",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[Stage].[SP_DeleteProcess]",
+								"storedProcedureParameters": {
+									"CallingModule": {
+										"value": {
+											"value": "@pipeline().parameters.CallingModule",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"CollectionName": {
+										"value": {
+											"value": "@activity('Watermark Lookup').output.value[0].Collection_Name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"JobName": {
+										"value": {
+											"value": "@pipeline().parameters.JobName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"MaxDeleteDate": {
+										"value": "ReceivedDate",
+										"type": "String"
+									},
+									"NodeName": {
+										"value": {
+											"value": "@activity('Watermark Lookup').output.value[0].Node",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ObjectName": {
+										"value": {
+											"value": "@activity('Watermark Lookup').output.value[0].Object",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Table_Name": {
+										"value": {
+											"value": "@activity('Watermark Lookup').output.value[0].Table_Name",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServerLinkedService",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "Error Log Copy Activity",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Copy data from Azure table to DataLake",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Copy data from Azure table to DataLake').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',activity('Watermark Lookup').output.value[0].Collection_Name)}';",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "Error Log Stored Procedure",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Stored procedure for Deletes",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Stored procedure for Deletes').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',activity('Watermark Lookup').output.value[0].Collection_Name)}';",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "Copy data from Azure table to DataLake",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureTableSource",
+									"azureTableSourceQuery": {
+										"value": "PartitionKey eq '@{activity('Watermark Lookup').output.value[0].Object}' and Timestamp ge datetime'@{activity('Watermark Lookup').output.value[0].Marker}' and Node eq '@{activity('Watermark Lookup').output.value[0].Node}'\n",
+										"type": "Expression"
+									},
+									"azureTableSourceIgnoreTableNotFound": false
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"tableOption": "autoCreate"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "PartitionKey",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Object",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "RowKey",
+												"type": "String"
+											},
+											"sink": {
+												"name": "EventId",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Timestamp",
+												"type": "DateTimeOffset"
+											},
+											"sink": {
+												"name": "ReceivedDate",
+												"type": "DateTimeOffset"
+											}
+										},
+										{
+											"source": {
+												"name": "ObjectId",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ObjectId",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Node",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Node",
+												"type": "String"
+											}
+										}
+									]
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "AzureTableParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": "Deletes"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": "C4C_DeleteRecords",
+										"Schema": "Stage"
+									}
+								}
+							]
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Update Job log",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "INSERT INTO dbo.C4C__JobLog (JobName,JobDate,JobUser,JobStatus,CallingModule,JobLevel) OUTPUT INSERTED.JobStatus Values (\n    '@{pipeline().parameters.JobName}',\n    '@{FormatDateTime(pipeline().TriggerTime,'yyyy-MM-dd HH:MM:ss.FFF')}',\n    'MSADF',\n    '@{\n        concat(\n            'Cannot find deletes mapping for table ', pipeline().parameters.TableName\n        )\n    }',\n    '@{pipeline().parameters.CallingModule}',\n    '4'\n)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			},
+			"JobName": {
+				"type": "string"
+			},
+			"CallingModule": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:23:32Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

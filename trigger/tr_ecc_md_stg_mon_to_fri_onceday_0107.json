@@ -1,0 +1,48 @@
+{
+	"name": "tr_ecc_md_stg_mon_to_fri_onceday_0107",
+	"properties": {
+		"description": "mon_to_fri_onceday_0107",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "bods_JF_UDI_SET_withsp",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_UDI_SET",
+					"schedule": "mon_to_fri_onceday_0107",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-02T03:17:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						7
+					],
+					"hours": [
+						1
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

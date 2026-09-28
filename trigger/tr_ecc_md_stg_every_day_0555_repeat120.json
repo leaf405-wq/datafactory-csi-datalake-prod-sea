@@ -1,0 +1,50 @@
+{
+	"name": "tr_ecc_md_stg_every_day_0555_repeat120",
+	"properties": {
+		"description": "Every day AM 05:55 start Repeat interval (minutes):120\t",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_SSM_VNDR",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_SSM_VNDR",
+					"schedule": "every_day_0555_repeat120",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-07-02T03:10:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						55
+					],
+					"hours": [
+						5,
+						7,
+						9,
+						11,
+						13,
+						15,
+						17,
+						19,
+						21,
+						23
+					]
+				}
+			}
+		}
+	}
+}

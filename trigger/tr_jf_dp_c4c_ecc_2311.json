@@ -1,0 +1,43 @@
+{
+	"name": "tr_jf_dp_c4c_ecc_2311",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_DP_C4C_ECC",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_DP_C4C_ECC",
+					"schedule": "sun_onceday_2311",
+					"sync_type": "full",
+					"target_system": "datalake",
+					"src_system": "eccdb"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-13T02:42:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						11
+					],
+					"hours": [
+						23
+					],
+					"weekDays": [
+						"Sunday"
+					]
+				}
+			}
+		}
+	}
+}

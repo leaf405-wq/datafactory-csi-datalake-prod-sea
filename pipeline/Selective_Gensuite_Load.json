@@ -1,0 +1,69 @@
+{
+	"name": "Selective_Gensuite_Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "GenSuite SQL to Datalake listed_events",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": "DROP TABLE [dbo].[GENS_STG_IM_Listed_Events]",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "GenSuiteToDLDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "IM_Listed_Events",
+							"Schema": "dbo"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "GENS_STG_IM_Listed_Events",
+							"Schema": "dbo"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "GenSuite"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:23:32Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,1839 @@
+{
+	"name": "ADO_Pagination",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set SkipCountValue",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SkipCount",
+					"value": {
+						"value": "@string(pipeline().parameters.Count)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Until",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Set SkipCountValue",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@lessOrEquals(int(variables('SkipCount')),0)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "ADO to SQL",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"writeBehavior": "upsert",
+									"upsertSettings": {
+										"useTempDB": true,
+										"keys": [
+											"WorkItemId"
+										]
+									},
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"path": "['WorkItemId']"
+											},
+											"sink": {
+												"name": "WorkItemId",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['InProgressDate']"
+											},
+											"sink": {
+												"name": "InProgressDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['CompletedDate']"
+											},
+											"sink": {
+												"name": "CompletedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['LeadTimeDays']"
+											},
+											"sink": {
+												"name": "LeadTimeDays",
+												"type": "Double"
+											}
+										},
+										{
+											"source": {
+												"path": "['CycleTimeDays']"
+											},
+											"sink": {
+												"name": "CycleTimeDays",
+												"type": "Double"
+											}
+										},
+										{
+											"source": {
+												"path": "['InProgressDateSK']"
+											},
+											"sink": {
+												"name": "InProgressDateSK",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['CompletedDateSK']"
+											},
+											"sink": {
+												"name": "CompletedDateSK",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['AnalyticsUpdatedDate']"
+											},
+											"sink": {
+												"name": "AnalyticsUpdatedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ProjectSK']"
+											},
+											"sink": {
+												"name": "ProjectSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['WorkItemRevisionSK']"
+											},
+											"sink": {
+												"name": "WorkItemRevisionSK",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['AreaSK']"
+											},
+											"sink": {
+												"name": "AreaSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['IterationSK']"
+											},
+											"sink": {
+												"name": "IterationSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['AssignedToUserSK']"
+											},
+											"sink": {
+												"name": "AssignedToUserSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ChangedByUserSK']"
+											},
+											"sink": {
+												"name": "ChangedByUserSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['CreatedByUserSK']"
+											},
+											"sink": {
+												"name": "CreatedByUserSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ActivatedByUserSK']"
+											},
+											"sink": {
+												"name": "ActivatedByUserSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ClosedByUserSK']"
+											},
+											"sink": {
+												"name": "ClosedByUserSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ResolvedByUserSK']"
+											},
+											"sink": {
+												"name": "ResolvedByUserSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ActivatedDateSK']"
+											},
+											"sink": {
+												"name": "ActivatedDateSK",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['ChangedDateSK']"
+											},
+											"sink": {
+												"name": "ChangedDateSK",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['ClosedDateSK']"
+											},
+											"sink": {
+												"name": "ClosedDateSK",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['CreatedDateSK']"
+											},
+											"sink": {
+												"name": "CreatedDateSK",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['ResolvedDateSK']"
+											},
+											"sink": {
+												"name": "ResolvedDateSK",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['StateChangeDateSK']"
+											},
+											"sink": {
+												"name": "StateChangeDateSK",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['Revision']"
+											},
+											"sink": {
+												"name": "Revision",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['Watermark']"
+											},
+											"sink": {
+												"name": "Watermark",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['Title']"
+											},
+											"sink": {
+												"name": "Title",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['WorkItemType']"
+											},
+											"sink": {
+												"name": "WorkItemType",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ChangedDate']"
+											},
+											"sink": {
+												"name": "ChangedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['CreatedDate']"
+											},
+											"sink": {
+												"name": "CreatedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['State']"
+											},
+											"sink": {
+												"name": "State",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Reason']"
+											},
+											"sink": {
+												"name": "Reason",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['FoundIn']"
+											},
+											"sink": {
+												"name": "FoundIn",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['IntegrationBuild']"
+											},
+											"sink": {
+												"name": "IntegrationBuild",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ActivatedDate']"
+											},
+											"sink": {
+												"name": "ActivatedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Activity']"
+											},
+											"sink": {
+												"name": "Activity",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['BusinessValue']"
+											},
+											"sink": {
+												"name": "BusinessValue",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ClosedDate']"
+											},
+											"sink": {
+												"name": "ClosedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Issue']"
+											},
+											"sink": {
+												"name": "Issue",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Priority']"
+											},
+											"sink": {
+												"name": "Priority",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Rating']"
+											},
+											"sink": {
+												"name": "Rating",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ResolvedDate']"
+											},
+											"sink": {
+												"name": "ResolvedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ResolvedReason']"
+											},
+											"sink": {
+												"name": "ResolvedReason",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Risk']"
+											},
+											"sink": {
+												"name": "Risk",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Severity']"
+											},
+											"sink": {
+												"name": "Severity",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['StackRank']"
+											},
+											"sink": {
+												"name": "StackRank",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['TimeCriticality']"
+											},
+											"sink": {
+												"name": "TimeCriticality",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ValueArea']"
+											},
+											"sink": {
+												"name": "ValueArea",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['CompletedWork']"
+											},
+											"sink": {
+												"name": "CompletedWork",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['DueDate']"
+											},
+											"sink": {
+												"name": "DueDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Effort']"
+											},
+											"sink": {
+												"name": "Effort",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['FinishDate']"
+											},
+											"sink": {
+												"name": "FinishDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['OriginalEstimate']"
+											},
+											"sink": {
+												"name": "OriginalEstimate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['RemainingWork']"
+											},
+											"sink": {
+												"name": "RemainingWork",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['StartDate']"
+											},
+											"sink": {
+												"name": "StartDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['StoryPoints']"
+											},
+											"sink": {
+												"name": "StoryPoints",
+												"type": "Double"
+											}
+										},
+										{
+											"source": {
+												"path": "['TargetDate']"
+											},
+											"sink": {
+												"name": "TargetDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Blocked']"
+											},
+											"sink": {
+												"name": "Blocked",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ParentWorkItemId']"
+											},
+											"sink": {
+												"name": "ParentWorkItemId",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['TagNames']"
+											},
+											"sink": {
+												"name": "TagNames",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['StateCategory']"
+											},
+											"sink": {
+												"name": "StateCategory",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['AutomatedTestId']"
+											},
+											"sink": {
+												"name": "AutomatedTestId",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['AutomatedTestName']"
+											},
+											"sink": {
+												"name": "AutomatedTestName",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['AutomatedTestStorage']"
+											},
+											"sink": {
+												"name": "AutomatedTestStorage",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['AutomatedTestType']"
+											},
+											"sink": {
+												"name": "AutomatedTestType",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['AutomationStatus']"
+											},
+											"sink": {
+												"name": "AutomationStatus",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['StateChangeDate']"
+											},
+											"sink": {
+												"name": "StateChangeDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Count']"
+											},
+											"sink": {
+												"name": "Count",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['CommentCount']"
+											},
+											"sink": {
+												"name": "CommentCount",
+												"type": "Int64"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_AdditionalCheckOwnerSK']"
+											},
+											"sink": {
+												"name": "Custom_CSH_AdditionalCheckOwnerSK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_AssociatedSPPProject']"
+											},
+											"sink": {
+												"name": "Custom_CSH_AssociatedSPPProject",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_CAPA_Required']"
+											},
+											"sink": {
+												"name": "Custom_CSH_CAPA_Required",
+												"type": "Boolean"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_Category']"
+											},
+											"sink": {
+												"name": "Custom_CSH_Category",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_Classification']"
+											},
+											"sink": {
+												"name": "Custom_CSH_Classification",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_ClosePostponeRejectReason']"
+											},
+											"sink": {
+												"name": "Custom_CSH_ClosePostponeRejectReason",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_CustomerComplaintNo']"
+											},
+											"sink": {
+												"name": "Custom_CSH_CustomerComplaintNo",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_DefectStatus']"
+											},
+											"sink": {
+												"name": "Custom_CSH_DefectStatus",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimateBudgetaryArch']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimateBudgetaryArch",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimateBudgetaryIPA']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimateBudgetaryIPA",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimateBudgetarySWDev']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimateBudgetarySWDev",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimateBudgetarySWEmbed']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimateBudgetarySWEmbed",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimateBudgetarySWQA']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimateBudgetarySWQA",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimateBudgetaryTotalSP']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimateBudgetaryTotalSP",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimateBudgetaryUCD']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimateBudgetaryUCD",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimatePostDesignUpdateArch']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimatePostDesignUpdateArch",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimatePostDesignUpdateIPA']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimatePostDesignUpdateIPA",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimatePostDesignUpdateSWDev']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimatePostDesignUpdateSWDev",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimatePostDesignUpdateSWEmbed']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimatePostDesignUpdateSWEmbed",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimatePostDesignUpdateSWQA']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimatePostDesignUpdateSWQA",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimatePostDesignUpdateTotalSP']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimatePostDesignUpdateTotalSP",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_EstimatePostDesignUpdateUCD']"
+											},
+											"sink": {
+												"name": "Custom_CSH_EstimatePostDesignUpdateUCD",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_FeatureOwner']"
+											},
+											"sink": {
+												"name": "Custom_CSH_FeatureOwner",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_FeatureRequestFormReceived']"
+											},
+											"sink": {
+												"name": "Custom_CSH_FeatureRequestFormReceived",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_FixedInBuild']"
+											},
+											"sink": {
+												"name": "Custom_CSH_FixedInBuild",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_FoundInBuild']"
+											},
+											"sink": {
+												"name": "Custom_CSH_FoundInBuild",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_FoundInProduct']"
+											},
+											"sink": {
+												"name": "Custom_CSH_FoundInProduct",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_FoundInVersion']"
+											},
+											"sink": {
+												"name": "Custom_CSH_FoundInVersion",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_InitialReportedDate']"
+											},
+											"sink": {
+												"name": "Custom_CSH_InitialReportedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_IsAdditionalCheckRequired']"
+											},
+											"sink": {
+												"name": "Custom_CSH_IsAdditionalCheckRequired",
+												"type": "Boolean"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_LeadArchitect']"
+											},
+											"sink": {
+												"name": "Custom_CSH_LeadArchitect",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_LeadQE']"
+											},
+											"sink": {
+												"name": "Custom_CSH_LeadQE",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_LeadSW']"
+											},
+											"sink": {
+												"name": "Custom_CSH_LeadSW",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_LeadTPM']"
+											},
+											"sink": {
+												"name": "Custom_CSH_LeadTPM",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_LeadUCD']"
+											},
+											"sink": {
+												"name": "Custom_CSH_LeadUCD",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_LowLevelDesignRequired']"
+											},
+											"sink": {
+												"name": "Custom_CSH_LowLevelDesignRequired",
+												"type": "Boolean"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_MfgSites']"
+											},
+											"sink": {
+												"name": "Custom_CSH_MfgSites",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_Milestones']"
+											},
+											"sink": {
+												"name": "Custom_CSH_Milestones",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_MustHave']"
+											},
+											"sink": {
+												"name": "Custom_CSH_MustHave",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_NeedDesignDoneBy']"
+											},
+											"sink": {
+												"name": "Custom_CSH_NeedDesignDoneBy",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_PerformanceFrequency']"
+											},
+											"sink": {
+												"name": "Custom_CSH_PerformanceFrequency",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_PerformanceRisk']"
+											},
+											"sink": {
+												"name": "Custom_CSH_PerformanceRisk",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_PerformanceSeverity']"
+											},
+											"sink": {
+												"name": "Custom_CSH_PerformanceSeverity",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_PLIEventCRCreationDate']"
+											},
+											"sink": {
+												"name": "Custom_CSH_PLIEventCRCreationDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_PLIEventCRNumber']"
+											},
+											"sink": {
+												"name": "Custom_CSH_PLIEventCRNumber",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_PLIEventCRSubmittedBy']"
+											},
+											"sink": {
+												"name": "Custom_CSH_PLIEventCRSubmittedBy",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_PLIEventOID']"
+											},
+											"sink": {
+												"name": "Custom_CSH_PLIEventOID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_PotentiallyReportableEvent']"
+											},
+											"sink": {
+												"name": "Custom_CSH_PotentiallyReportableEvent",
+												"type": "Boolean"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_Priority']"
+											},
+											"sink": {
+												"name": "Custom_CSH_Priority",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_ProductFamily']"
+											},
+											"sink": {
+												"name": "Custom_CSH_ProductFamily",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_RallyId']"
+											},
+											"sink": {
+												"name": "Custom_CSH_RallyId",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_Release']"
+											},
+											"sink": {
+												"name": "Custom_CSH_Release",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_Reproducible']"
+											},
+											"sink": {
+												"name": "Custom_CSH_Reproducible",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SafetyFrequency']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SafetyFrequency",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SafetyRisk']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SafetyRisk",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SafetySeverity']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SafetySeverity",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SecurityImpact']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SecurityImpact",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SecurityLikelihood']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SecurityLikelihood",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SecurityRisk']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SecurityRisk",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SignoffDIDRequirementsApproved']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SignoffDIDRequirementsApproved",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SignoffFinalFeatureReviewComplete']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SignoffFinalFeatureReviewComplete",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SignoffHLDUseCasesApproved']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SignoffHLDUseCasesApproved",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SignoffNA']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SignoffNA",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SignoffTestDesignApproved']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SignoffTestDesignApproved",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SignoffUCDSpecApproved']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SignoffUCDSpecApproved",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_Status']"
+											},
+											"sink": {
+												"name": "Custom_CSH_Status",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_Submitter']"
+											},
+											"sink": {
+												"name": "Custom_CSH_Submitter",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_SupportingProducts']"
+											},
+											"sink": {
+												"name": "Custom_CSH_SupportingProducts",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_TaskStatus']"
+											},
+											"sink": {
+												"name": "Custom_CSH_TaskStatus",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_TradeTrialRequired']"
+											},
+											"sink": {
+												"name": "Custom_CSH_TradeTrialRequired",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_VerifiedDate']"
+											},
+											"sink": {
+												"name": "Custom_CSH_VerifiedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_VerifiedInBuild']"
+											},
+											"sink": {
+												"name": "Custom_CSH_VerifiedInBuild",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_VersionVerified']"
+											},
+											"sink": {
+												"name": "Custom_CSH_VersionVerified",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSH_WasResolutionEffective']"
+											},
+											"sink": {
+												"name": "Custom_CSH_WasResolutionEffective",
+												"type": "Boolean"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_CSHSoftwareVersion']"
+											},
+											"sink": {
+												"name": "Custom_CSHSoftwareVersion",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_EscalationID']"
+											},
+											"sink": {
+												"name": "Custom_EscalationID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_Impacted_Products']"
+											},
+											"sink": {
+												"name": "Custom_Impacted_Products",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_Impacted_Versions']"
+											},
+											"sink": {
+												"name": "Custom_Impacted_Versions",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_InvestigationResult2']"
+											},
+											"sink": {
+												"name": "Custom_InvestigationResult2",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_ProductCategory']"
+											},
+											"sink": {
+												"name": "Custom_ProductCategory",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_ProductFeature']"
+											},
+											"sink": {
+												"name": "Custom_ProductFeature",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_ReportLocation']"
+											},
+											"sink": {
+												"name": "Custom_ReportLocation",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_SiteName']"
+											},
+											"sink": {
+												"name": "Custom_SiteName",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_SiteRegion']"
+											},
+											"sink": {
+												"name": "Custom_SiteRegion",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Custom_WhenOccurred']"
+											},
+											"sink": {
+												"name": "Custom_WhenOccurred",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_CodeReview_AcceptedBySK']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_CodeReview_AcceptedBySK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_CodeReview_AcceptedDate']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_CodeReview_AcceptedDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_CodeReview_ClosedStatus']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_CodeReview_ClosedStatus",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_CodeReview_ClosedStatusCode']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_CodeReview_ClosedStatusCode",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_CodeReview_ClosingComment']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_CodeReview_ClosingComment",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_CodeReview_Context']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_CodeReview_Context",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_CodeReview_ContextCode']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_CodeReview_ContextCode",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_CodeReview_ContextOwner']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_CodeReview_ContextOwner",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_CodeReview_ContextType']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_CodeReview_ContextType",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_Common_ReviewedBySK']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_Common_ReviewedBySK",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_Common_StateCode']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_Common_StateCode",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_Feedback_ApplicationType']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_Feedback_ApplicationType",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_TCM_TestSuiteType']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_TCM_TestSuiteType",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Microsoft_VSTS_TCM_TestSuiteTypeId']"
+											},
+											"sink": {
+												"name": "Microsoft_VSTS_TCM_TestSuiteTypeId",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['AssignedTo']['UserName']"
+											},
+											"sink": {
+												"name": "AssignedToUser",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ChangedBy']['UserName']"
+											},
+											"sink": {
+												"name": "ChangedByUser",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['CreatedBy']['UserName']"
+											},
+											"sink": {
+												"name": "CreatedByUser",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ActivatedBy']['UserName']"
+											},
+											"sink": {
+												"name": "ActivatedBy",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ClosedBy']['UserName']"
+											},
+											"sink": {
+												"name": "ClosedByUser",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['ResolvedBy']['UserName']"
+											},
+											"sink": {
+												"name": "ResolvedByUser",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Project']['ProjectName']"
+											},
+											"sink": {
+												"name": "ProjectName",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Area']['AreaPath']"
+											},
+											"sink": {
+												"name": "AreaPath",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['Iteration']['IterationPath']"
+											},
+											"sink": {
+												"name": "IterationPath",
+												"type": "String"
+											}
+										}
+									],
+									"collectionReference": "$['value']",
+									"mapComplexValuesToString": true
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ADORestAPIDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Relative_Url": {
+											"value": "@concat('https://analytics.dev.azure.com/csi-devops/',pipeline().parameters.ProjectName,'/_odata/v4.0-preview/WorkItems?$count=true&',pipeline().parameters.Filter_Query,'&$expand=AssignedTo($select=UserName),ChangedBy($select=UserName),CreatedBy($select=UserName),ActivatedBy($select=UserName),ClosedBy($select=UserName),ResolvedBy($select=UserName),Project($Select=ProjectName),Area($Select=AreaPath),Iteration($Select=IterationPath)&$orderby=WorkItemId&$Skip=',variables('SkipToken'),'&$top=10000')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": "ADO_WorkItems_temp",
+										"Schema": "dbo"
+									}
+								}
+							]
+						},
+						{
+							"name": "Set SkipToken",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Add count",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SkipToken",
+								"value": {
+									"value": "@variables('AddCount')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Add count",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "ADO to SQL",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "AddCount",
+								"value": {
+									"value": "@string(add(int(variables('SkipToken')),10000))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set SkipCount",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Subtract Count",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SkipCount",
+								"value": {
+									"value": "@variables('SubCount')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Subtract Count",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set SkipToken",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SubCount",
+								"value": {
+									"value": "@string(sub(int(variables('SkipCount')),10000 ))",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			}
+		],
+		"parameters": {
+			"ProjectName": {
+				"type": "string"
+			},
+			"Count": {
+				"type": "int"
+			},
+			"Filter_Query": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"SkipCount": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"SkipToken": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"AddCount": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"SubCount": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"Delta_Date": {
+				"type": "String"
+			},
+			"Filter_Query": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ADO_Migration"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:22:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

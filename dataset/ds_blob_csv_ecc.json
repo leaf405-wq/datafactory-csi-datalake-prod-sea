@@ -1,0 +1,689 @@
+{
+	"name": "ds_blob_csv_ecc",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob_bods_stage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"tbname": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": {
+					"value": "@dataset().tbname",
+					"type": "Expression"
+				},
+				"container": "bods-stage-data"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "ROCANCEL",
+				"type": "String"
+			},
+			{
+				"name": "VBELN",
+				"type": "String"
+			},
+			{
+				"name": "ABSTA",
+				"type": "String"
+			},
+			{
+				"name": "POSNR",
+				"type": "String"
+			},
+			{
+				"name": "UVALL",
+				"type": "String"
+			},
+			{
+				"name": "UVFAK",
+				"type": "String"
+			},
+			{
+				"name": "UVPRS",
+				"type": "String"
+			},
+			{
+				"name": "UVVLK",
+				"type": "String"
+			},
+			{
+				"name": "ANGDT",
+				"type": "String"
+			},
+			{
+				"name": "AUART",
+				"type": "String"
+			},
+			{
+				"name": "AUGRU",
+				"type": "String"
+			},
+			{
+				"name": "BNDDT",
+				"type": "String"
+			},
+			{
+				"name": "BUKRS",
+				"type": "String"
+			},
+			{
+				"name": "FAKSK",
+				"type": "String"
+			},
+			{
+				"name": "HWAER",
+				"type": "String"
+			},
+			{
+				"name": "KUNNR",
+				"type": "String"
+			},
+			{
+				"name": "KURST",
+				"type": "String"
+			},
+			{
+				"name": "KVGR1",
+				"type": "String"
+			},
+			{
+				"name": "KVGR2",
+				"type": "String"
+			},
+			{
+				"name": "KVGR3",
+				"type": "String"
+			},
+			{
+				"name": "KVGR4",
+				"type": "String"
+			},
+			{
+				"name": "KVGR5",
+				"type": "String"
+			},
+			{
+				"name": "LIFSK",
+				"type": "String"
+			},
+			{
+				"name": "STWAE",
+				"type": "String"
+			},
+			{
+				"name": "VBTYP",
+				"type": "String"
+			},
+			{
+				"name": "VKBUR",
+				"type": "String"
+			},
+			{
+				"name": "VKGRP",
+				"type": "String"
+			},
+			{
+				"name": "VKORG",
+				"type": "String"
+			},
+			{
+				"name": "VTWEG",
+				"type": "String"
+			},
+			{
+				"name": "BSTNK",
+				"type": "String"
+			},
+			{
+				"name": "VSBED",
+				"type": "String"
+			},
+			{
+				"name": "ZZC4CQUOTE",
+				"type": "String"
+			},
+			{
+				"name": "ZZGPO",
+				"type": "String"
+			},
+			{
+				"name": "ZZLAND1",
+				"type": "String"
+			},
+			{
+				"name": "ZZORT01",
+				"type": "String"
+			},
+			{
+				"name": "ZZPSTLZ",
+				"type": "String"
+			},
+			{
+				"name": "ZZREGIO",
+				"type": "String"
+			},
+			{
+				"name": "ZZ_BMI_QN",
+				"type": "String"
+			},
+			{
+				"name": "ZZ_COMMIT_DLV_DATE",
+				"type": "String"
+			},
+			{
+				"name": "ZZ_RDD_CONFIRMATION",
+				"type": "String"
+			},
+			{
+				"name": "ZZ_RDD_REASON_CODE",
+				"type": "String"
+			},
+			{
+				"name": "ABGRU",
+				"type": "String"
+			},
+			{
+				"name": "AEDAT",
+				"type": "String"
+			},
+			{
+				"name": "AWAHR",
+				"type": "String"
+			},
+			{
+				"name": "BRGEW",
+				"type": "String"
+			},
+			{
+				"name": "BWAPPLNM",
+				"type": "String"
+			},
+			{
+				"name": "BWVORG",
+				"type": "String"
+			},
+			{
+				"name": "CHARG",
+				"type": "String"
+			},
+			{
+				"name": "CMKUA",
+				"type": "String"
+			},
+			{
+				"name": "EAN11",
+				"type": "String"
+			},
+			{
+				"name": "ERDAT",
+				"type": "String"
+			},
+			{
+				"name": "ERNAM",
+				"type": "String"
+			},
+			{
+				"name": "ERZET",
+				"type": "String"
+			},
+			{
+				"name": "FAKSP",
+				"type": "String"
+			},
+			{
+				"name": "GEWEI",
+				"type": "String"
+			},
+			{
+				"name": "KBMENG",
+				"type": "String"
+			},
+			{
+				"name": "KLMENG",
+				"type": "String"
+			},
+			{
+				"name": "KMEIN",
+				"type": "String"
+			},
+			{
+				"name": "KNUMA_AG",
+				"type": "String"
+			},
+			{
+				"name": "KPEIN",
+				"type": "String"
+			},
+			{
+				"name": "KWMENG",
+				"type": "String"
+			},
+			{
+				"name": "KZWI1",
+				"type": "String"
+			},
+			{
+				"name": "KZWI2",
+				"type": "String"
+			},
+			{
+				"name": "KZWI3",
+				"type": "String"
+			},
+			{
+				"name": "KZWI4",
+				"type": "String"
+			},
+			{
+				"name": "KZWI5",
+				"type": "String"
+			},
+			{
+				"name": "KZWI6",
+				"type": "String"
+			},
+			{
+				"name": "LFMNG",
+				"type": "String"
+			},
+			{
+				"name": "LGORT",
+				"type": "String"
+			},
+			{
+				"name": "LSMENG",
+				"type": "String"
+			},
+			{
+				"name": "MATKL",
+				"type": "String"
+			},
+			{
+				"name": "MATNR",
+				"type": "String"
+			},
+			{
+				"name": "MATWA",
+				"type": "String"
+			},
+			{
+				"name": "MEINS",
+				"type": "String"
+			},
+			{
+				"name": "MVGR1",
+				"type": "String"
+			},
+			{
+				"name": "MVGR2",
+				"type": "String"
+			},
+			{
+				"name": "MVGR3",
+				"type": "String"
+			},
+			{
+				"name": "MVGR4",
+				"type": "String"
+			},
+			{
+				"name": "MVGR5",
+				"type": "String"
+			},
+			{
+				"name": "MWSBP",
+				"type": "String"
+			},
+			{
+				"name": "NETPR",
+				"type": "String"
+			},
+			{
+				"name": "NETWR",
+				"type": "String"
+			},
+			{
+				"name": "NTGEW",
+				"type": "String"
+			},
+			{
+				"name": "PABLA",
+				"type": "String"
+			},
+			{
+				"name": "PKUNRE",
+				"type": "String"
+			},
+			{
+				"name": "PKUNRG",
+				"type": "String"
+			},
+			{
+				"name": "PKUNWE",
+				"type": "String"
+			},
+			{
+				"name": "PRODH",
+				"type": "String"
+			},
+			{
+				"name": "PSPDNR",
+				"type": "String"
+			},
+			{
+				"name": "PSTYV",
+				"type": "String"
+			},
+			{
+				"name": "PVRTNR",
+				"type": "String"
+			},
+			{
+				"name": "ROUTE",
+				"type": "String"
+			},
+			{
+				"name": "SOBKZ",
+				"type": "String"
+			},
+			{
+				"name": "SPART",
+				"type": "String"
+			},
+			{
+				"name": "STADAT",
+				"type": "String"
+			},
+			{
+				"name": "STCUR",
+				"type": "String"
+			},
+			{
+				"name": "SUGRD",
+				"type": "String"
+			},
+			{
+				"name": "UEBTK",
+				"type": "String"
+			},
+			{
+				"name": "UEBTO",
+				"type": "String"
+			},
+			{
+				"name": "UMVKN",
+				"type": "String"
+			},
+			{
+				"name": "UMVKZ",
+				"type": "String"
+			},
+			{
+				"name": "UMZIN",
+				"type": "String"
+			},
+			{
+				"name": "UMZIZ",
+				"type": "String"
+			},
+			{
+				"name": "UNTTO",
+				"type": "String"
+			},
+			{
+				"name": "VDATU",
+				"type": "String"
+			},
+			{
+				"name": "VGBEL",
+				"type": "String"
+			},
+			{
+				"name": "VGPOS",
+				"type": "String"
+			},
+			{
+				"name": "VGTYP",
+				"type": "String"
+			},
+			{
+				"name": "VOLEH",
+				"type": "String"
+			},
+			{
+				"name": "VOLUM",
+				"type": "String"
+			},
+			{
+				"name": "VRKME",
+				"type": "String"
+			},
+			{
+				"name": "VSTEL",
+				"type": "String"
+			},
+			{
+				"name": "WAERK",
+				"type": "String"
+			},
+			{
+				"name": "WAVWR",
+				"type": "String"
+			},
+			{
+				"name": "WERKS",
+				"type": "String"
+			},
+			{
+				"name": "ZIEME",
+				"type": "String"
+			},
+			{
+				"name": "ZMENG",
+				"type": "String"
+			},
+			{
+				"name": "ZWERT",
+				"type": "String"
+			},
+			{
+				"name": "ARKTX",
+				"type": "String"
+			},
+			{
+				"name": "LPRIO",
+				"type": "String"
+			},
+			{
+				"name": "PCTRF",
+				"type": "String"
+			},
+			{
+				"name": "PLAAG",
+				"type": "String"
+			},
+			{
+				"name": "PLARG",
+				"type": "String"
+			},
+			{
+				"name": "PLAWE",
+				"type": "String"
+			},
+			{
+				"name": "POSNV",
+				"type": "String"
+			},
+			{
+				"name": "PRCTR",
+				"type": "String"
+			},
+			{
+				"name": "VBELV",
+				"type": "String"
+			},
+			{
+				"name": "ZZCOD_MATKL",
+				"type": "String"
+			},
+			{
+				"name": "ZZCOD_MATNR",
+				"type": "String"
+			},
+			{
+				"name": "ZZCOD_PMS",
+				"type": "String"
+			},
+			{
+				"name": "ZZCOD_SRVP",
+				"type": "String"
+			},
+			{
+				"name": "ZZCOD_SRVT",
+				"type": "String"
+			},
+			{
+				"name": "ZZKNO",
+				"type": "String"
+			},
+			{
+				"name": "ZZKZWIE",
+				"type": "String"
+			},
+			{
+				"name": "ZZKZWIF",
+				"type": "String"
+			},
+			{
+				"name": "ZZKZWIG",
+				"type": "String"
+			},
+			{
+				"name": "ZZPDDDATE",
+				"type": "String"
+			},
+			{
+				"name": "ZZSERIALNO",
+				"type": "String"
+			},
+			{
+				"name": "ZZSTOTTAX",
+				"type": "String"
+			},
+			{
+				"name": "ZZZONE",
+				"type": "String"
+			},
+			{
+				"name": "ZZ_REF_SO",
+				"type": "String"
+			},
+			{
+				"name": "BZIRK",
+				"type": "String"
+			},
+			{
+				"name": "FBUDA",
+				"type": "String"
+			},
+			{
+				"name": "FKDAT",
+				"type": "String"
+			},
+			{
+				"name": "INCO1",
+				"type": "String"
+			},
+			{
+				"name": "INCO2",
+				"type": "String"
+			},
+			{
+				"name": "KDGRP",
+				"type": "String"
+			},
+			{
+				"name": "KTGRD",
+				"type": "String"
+			},
+			{
+				"name": "KURSK",
+				"type": "String"
+			},
+			{
+				"name": "KURSK_DAT",
+				"type": "String"
+			},
+			{
+				"name": "PRSDT",
+				"type": "String"
+			},
+			{
+				"name": "WAKTION",
+				"type": "String"
+			},
+			{
+				"name": "WMINR",
+				"type": "String"
+			},
+			{
+				"name": "BEMOT",
+				"type": "String"
+			},
+			{
+				"name": "BSARK",
+				"type": "String"
+			},
+			{
+				"name": "WAERK_VBAK",
+				"type": "String"
+			},
+			{
+				"name": "SPARA",
+				"type": "String"
+			},
+			{
+				"name": "VGTYP_AK",
+				"type": "String"
+			},
+			{
+				"name": "PS_POSID",
+				"type": "String"
+			},
+			{
+				"name": "ANZAUPO",
+				"type": "String"
+			},
+			{
+				"name": "PERIV",
+				"type": "String"
+			},
+			{
+				"name": "MCEX_APCAMPAIGN",
+				"type": "String"
+			},
+			{
+				"name": "APOPLANNED",
+				"type": "String"
+			},
+			{
+				"name": "MCBW_NETPR_AVKM",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

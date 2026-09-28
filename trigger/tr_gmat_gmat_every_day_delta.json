@@ -1,0 +1,32 @@
+{
+	"name": "tr_gmat_gmat_every_day_delta",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Gmat_Ingest_GMAT_Delta_arrow",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods",
+					"schedule": "mon_to_fri_onceday",
+					"sync_type": "insert",
+					"target_system": "gmat",
+					"src_system": "gmat"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 15,
+				"startTime": "2026-05-13T08:25:00",
+				"timeZone": "China Standard Time"
+			}
+		}
+	}
+}

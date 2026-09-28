@@ -1,0 +1,153 @@
+{
+	"name": "Child_Process_Big_Table",
+	"properties": {
+		"activities": [
+			{
+				"name": "Exec_Chunksize_1",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SLT_Chunksize_Ingest_Datalake_1",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"is_init_only": 0,
+						"project": "slt",
+						"schedule": "everyday_2311",
+						"sync_type": "full",
+						"target_system": "datalake",
+						"src_system": "vhcshp50ai01_P50_01_big"
+					}
+				}
+			},
+			{
+				"name": "Exec Chunksize_2",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exec_Chunksize_1",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SLT_Chunksize_Ingest_Datalake_2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"is_init_only": 0,
+						"project": "slt",
+						"schedule": "every_15_minutes",
+						"sync_type": "full",
+						"target_system": "datalake",
+						"src_system": "vhcshp50ai01_P50_02_big"
+					}
+				}
+			},
+			{
+				"name": "Exec Chunksize_3",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exec Chunksize_2",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SLT_Chunksize_Ingest_Datalake_ByInt",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"is_init_only": 0,
+						"project": "slt",
+						"schedule": "daily",
+						"sync_type": "full",
+						"target_system": "datalake",
+						"src_system": "vhcshp50ai01_P50_00_big"
+					}
+				}
+			},
+			{
+				"name": "Exec_VBPA",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exec Chunksize_3",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SLT_Chunksize_Ingest_Datalake_VBPA",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"is_init_only": 0,
+						"project": "slt",
+						"schedule": "daily",
+						"sync_type": "full",
+						"target_system": "datalake",
+						"src_system": "dev_vbpa"
+					}
+				}
+			},
+			{
+				"name": "SLT_Chunksize_Ingest_Datalake_EKBE",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exec Chunksize_3",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SLT_Chunksize_Ingest_Datalake_EKBE",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "SLT_INGEST/SLT_Ingest_Datalake_FULL/SLT_Full_Big_Table_Daily"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-20T05:13:12Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

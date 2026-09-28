@@ -1,0 +1,85 @@
+{
+	"name": "SLT_Ingest_Datalake_Process_SrrelRoles_FULL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set Pasttwoyears",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_past2years_list",
+					"value": {
+						"value": "@range(2007, add(sub(int(formatDateTime(utcNow(), 'yyyy')), 2007), 1))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Set Pasttwoyears",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_past2years_list')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Exec SRRELROLES",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "SLT_Ingest_Datalake_Delta_SRRELROLES_Byyear_Full",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "slt",
+									"schedule": "daily",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": "test_srrelroles",
+									"var_year": {
+										"value": "@string(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_past2years_list": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "SWO_Testing"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-16T15:03:59Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

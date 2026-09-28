@@ -1,0 +1,47 @@
+{
+	"name": "tr_bw_gmat_mon_to_fri_onceday_0809",
+	"properties": {
+		"description": "mon to fri once a day AM 08:09",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_ENT_DELTA_3W",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"project": "bods_JF_ENT_DELTA_3W",
+					"schedule": "mon_to_fri_onceday_0809",
+					"sync_type": "full",
+					"target_system": "gmat",
+					"src_system": "bw"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-02T08:22:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						9
+					],
+					"hours": [
+						8
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

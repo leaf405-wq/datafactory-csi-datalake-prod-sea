@@ -1,0 +1,270 @@
+{
+	"name": "Standard_Chunked_FullLoad_SubPipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Until1",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "IncrementSkip_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(\n    equals(\n        activity('C4CToAzureCopyFullload').output.rowsRead,0\n    ),\n    equals(\n        length(activity('C4CToAzureCopyFullload').output.errors),\n        0\n    )\n)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "C4CToAzureCopyFullload",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SapCloudForCustomerSource",
+									"query": {
+										"value": "@{\n    concat(\n        '$skip=',\n        variables('Skip'),\n        '&$top=',\n        pipeline().parameters.ChunkSize,\n        '&$format=json'\n    )\n}",
+										"type": "Expression"
+									},
+									"httpRequestTimeout": "05:00:00"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"writeBatchTimeout": "10:00:00"
+								},
+								"enableStaging": false,
+								"parallelCopies": 5
+							},
+							"inputs": [
+								{
+									"referenceName": "SapC4cParameterizedStandardDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Name": {
+											"value": "@pipeline().parameters.Source_Collection",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": {
+											"value": "@pipeline().parameters.Destination_Table",
+											"type": "Expression"
+										},
+										"Schema": "Stage"
+									}
+								}
+							]
+						},
+						{
+							"name": "IncrementTempForSkip",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "C4CToAzureCopyFullload",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Temp",
+								"value": {
+									"value": "@string(\n    add(\n        int(variables('Skip')),\n        int(pipeline().parameters.ChunkSize)\n    )\n)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "IncrementSkip",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "IncrementTempForSkip",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Skip",
+								"value": {
+									"value": "@variables('Temp')",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "7.00:00:00"
+				}
+			},
+			{
+				"name": "DropCreateTableAndInitialLoad",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SapCloudForCustomerSource",
+						"query": {
+							"value": "@{\n    concat(\n        '$skip=',\n        variables('Skip'),\n        '&$top=',\n        pipeline().parameters.ChunkSize,\n        '&$format=json'\n    )\n}",
+							"type": "Expression"
+						},
+						"httpRequestTimeout": "05:00:00"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBatchTimeout": "10:00:00",
+						"preCopyScript": {
+							"value": "DROP TABLE IF EXISTS @{concat('Stage.',pipeline().parameters.Destination_Table)}",
+							"type": "Expression"
+						},
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"parallelCopies": 5
+				},
+				"inputs": [
+					{
+						"referenceName": "SapC4cParameterizedStandardDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Name": {
+								"value": "@pipeline().parameters.Source_Collection",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": {
+								"value": "@pipeline().parameters.Destination_Table",
+								"type": "Expression"
+							},
+							"Schema": "Stage"
+						}
+					}
+				]
+			},
+			{
+				"name": "IncrementTempForSkip_copy1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "DropCreateTableAndInitialLoad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Temp",
+					"value": {
+						"value": "@string(\n    add(\n        int(variables('Skip')),\n        int(pipeline().parameters.ChunkSize)\n    )\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "IncrementSkip_copy1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "IncrementTempForSkip_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Skip",
+					"value": {
+						"value": "@variables('Temp')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"concurrency": 5,
+		"parameters": {
+			"Source_Collection": {
+				"type": "string"
+			},
+			"Destination_Table": {
+				"type": "string"
+			},
+			"DeltaColumn": {
+				"type": "string"
+			},
+			"ChunkSize": {
+				"type": "string",
+				"defaultValue": "1000"
+			}
+		},
+		"variables": {
+			"Skip": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"Temp": {
+				"type": "String",
+				"defaultValue": "0"
+			}
+		},
+		"folder": {
+			"name": "Standard"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:23:33Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

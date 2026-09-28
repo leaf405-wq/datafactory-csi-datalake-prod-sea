@@ -1,0 +1,599 @@
+{
+	"name": "Standard_AttachmentFolderCollections",
+	"properties": {
+		"activities": [
+			{
+				"name": "Watermark_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Select * from [Stage].[LookupTable_Attachments] where Batch = @{pipeline().parameters.Batch} AND PullFlag=1 AND DeltaFlag=1",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Iterate and Copy",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Watermark_Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Watermark_Lookup').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "If Condition for delta type",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Inner Watermark_Lookup",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(pipeline().parameters.DeltaType,'F')",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "C4CToAzureCopy Delta Load",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "RestSource",
+												"httpRequestTimeout": "10.23:55:55",
+												"requestInterval": "00.00:00:00.010",
+												"requestMethod": "GET",
+												"paginationRules": {
+													"AbsoluteUrl": {
+														"value": "$.d.__next",
+														"type": "Expression"
+													}
+												}
+											},
+											"sink": {
+												"type": "SqlServerSink",
+												"writeBatchTimeout": "10:00:00",
+												"preCopyScript": {
+													"value": "@{concat('Truncate table Dmp.',activity('Inner Watermark_Lookup').output.value[0].Table_Name)}",
+													"type": "Expression"
+												},
+												"writeBehavior": "insert",
+												"sqlWriterUseTableLock": true
+											},
+											"enableStaging": false,
+											"translator": {
+												"value": "@json(activity('Inner Watermark_Lookup').output.value[0].Mapping)",
+												"type": "Expression"
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "SapC4CStandardParameterizedRestDataset",
+												"type": "DatasetReference",
+												"parameters": {
+													"SourceCollection": {
+														"value": "@concat(activity('Inner Watermark_Lookup').output.value[0].Parent_Object,\n    'Collection',\n    '?$filter=',\n    activity('Inner Watermark_Lookup').output.value[0].Delta_Column,    ' ge datetimeoffset',\n    '''',\n    activity('Inner Watermark_Lookup').output.value[0].Marker,\n    '''',\n    '&$expand=',\n    activity('Inner Watermark_Lookup').output.value[0].Source_Collection,\n    if(\n        equals(\n            activity('Inner Watermark_Lookup').output.value[0].Source_Collection,\n            'ServiceRequestAttachmentFolder'\n        ),\n        '&$select=ServiceRequestAttachmentFolder/CategoryCode,ServiceRequestAttachmentFolder/CategoryCodeText,ServiceRequestAttachmentFolder/CreatedBy,ServiceRequestAttachmentFolder/CreatedOn,ServiceRequestAttachmentFolder/DocumentLink,ServiceRequestAttachmentFolder/ETag,ServiceRequestAttachmentFolder/LastUpdatedBy,ServiceRequestAttachmentFolder/LastUpdatedOn,ServiceRequestAttachmentFolder/LinkWebURI,ServiceRequestAttachmentFolder/MimeType,ServiceRequestAttachmentFolder/Name,ServiceRequestAttachmentFolder/ObjectID,ServiceRequestAttachmentFolder/ParentObjectID,ServiceRequestAttachmentFolder/ServiceRequestID,ServiceRequestAttachmentFolder/TypeCode,ServiceRequestAttachmentFolder/TypeCodeText,ServiceRequestAttachmentFolder/UUID',\n        if(\n            equals(\n                activity('Inner Watermark_Lookup').output.value[0].Source_Collection,\n                'ContractAttachmentFolder'\n            ),\n            '&$select=ContractAttachmentFolder/ObjectID,ContractAttachmentFolder/ParentObjectID,ContractAttachmentFolder/ContractID,ContractAttachmentFolder/UUID,ContractAttachmentFolder/TypeCode,ContractAttachmentFolder/MimeType,ContractAttachmentFolder/DocumentLink,ContractAttachmentFolder/Name,ContractAttachmentFolder/CategoryCode,ContractAttachmentFolder/LinkWebURI,ContractAttachmentFolder/CreatedOn,ContractAttachmentFolder/LastUpdatedOn,ContractAttachmentFolder/CreatedBy,ContractAttachmentFolder/LastUpdatedBy,ContractAttachmentFolder/SizeInkB,ContractAttachmentFolder/ETag',\n            ''\n        )\n    )\n)",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "SqlServerParameterizedDataset",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table_Name": {
+														"value": "@activity('Inner Watermark_Lookup').output.value[0].Table_Name",
+														"type": "Expression"
+													},
+													"Schema": "Dmp"
+												}
+											}
+										]
+									},
+									{
+										"name": "Error Log For Copy Activity Delta Load",
+										"type": "Lookup",
+										"dependsOn": [
+											{
+												"activity": "C4CToAzureCopy Delta Load",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('C4CToAzureCopy Delta Load').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',activity('Inner Watermark_Lookup').output.value[0].Source_Collection)}'\n;",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "SqlServerParameterizedDataset",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table_Name": ".",
+													"Schema": "."
+												}
+											}
+										}
+									},
+									{
+										"name": "Delete Insert Data From Staging to Main Table_DeltaLoad",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "C4CToAzureCopy Delta Load",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[Stage].[SP_DeleteInsert_Attachment]",
+											"storedProcedureParameters": {
+												"columname": {
+													"value": {
+														"value": "@activity('Inner Watermark_Lookup').output.value[0].Delta_Column",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"DeltaType": {
+													"value": {
+														"value": "@pipeline().parameters.DeltaType",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"TableName": {
+													"value": {
+														"value": "@activity('Inner Watermark_Lookup').output.value[0].Table_Name",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "SqlServerLinkedService",
+											"type": "LinkedServiceReference"
+										}
+									},
+									{
+										"name": "Error Log For Delete Insert_DeltaLoad",
+										"type": "Lookup",
+										"dependsOn": [
+											{
+												"activity": "Delete Insert Data From Staging to Main Table_DeltaLoad",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Delete Insert Data From Staging to Main Table_DeltaLoad').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',activity('Inner Watermark_Lookup').output.value[0].Source_Collection)}'\n;",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "SqlServerParameterizedDataset",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table_Name": ".",
+													"Schema": "."
+												}
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "C4CToAzureCopy Full Load",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "RestSource",
+												"httpRequestTimeout": "10.23:55:55",
+												"requestInterval": "00.00:00:00.010",
+												"requestMethod": "GET",
+												"paginationRules": {
+													"AbsoluteUrl": {
+														"value": "$.d.__next",
+														"type": "Expression"
+													}
+												}
+											},
+											"sink": {
+												"type": "SqlServerSink",
+												"writeBatchTimeout": "10:00:00",
+												"preCopyScript": {
+													"value": "@{concat('Truncate table Dmp.',activity('Inner Watermark_Lookup').output.value[0].Table_Name)}",
+													"type": "Expression"
+												},
+												"writeBehavior": "insert",
+												"sqlWriterUseTableLock": true
+											},
+											"enableStaging": false,
+											"translator": {
+												"value": "@json(activity('Inner Watermark_Lookup').output.value[0].Mapping)",
+												"type": "Expression"
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "SapC4CStandardParameterizedRestDataset",
+												"type": "DatasetReference",
+												"parameters": {
+													"SourceCollection": {
+														"value": "@concat(activity('Inner Watermark_Lookup').output.value[0].Parent_Object,\n'Collection',\n'?$expand=',\nactivity('Inner Watermark_Lookup').output.value[0].Source_Collection\n)",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "SqlServerParameterizedDataset",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table_Name": {
+														"value": "@activity('Inner Watermark_Lookup').output.value[0].Table_Name",
+														"type": "Expression"
+													},
+													"Schema": "Dmp"
+												}
+											}
+										]
+									},
+									{
+										"name": "Error Log For Copy Activity Full Load",
+										"type": "Lookup",
+										"dependsOn": [
+											{
+												"activity": "C4CToAzureCopy Full Load",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('C4CToAzureCopy Full Load').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',activity('Inner Watermark_Lookup').output.value[0].Source_Collection)}'\n;",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "SqlServerParameterizedDataset",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table_Name": ".",
+													"Schema": "."
+												}
+											}
+										}
+									},
+									{
+										"name": "Delete Insert Data From Staging to Main Table_FullLoad",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "C4CToAzureCopy Full Load",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[Stage].[SP_DeleteInsert_Attachment]",
+											"storedProcedureParameters": {
+												"columname": {
+													"value": {
+														"value": "@activity('Inner Watermark_Lookup').output.value[0].Delta_Column",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"DeltaType": {
+													"value": {
+														"value": "@pipeline().parameters.DeltaType",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"TableName": {
+													"value": {
+														"value": "@activity('Inner Watermark_Lookup').output.value[0].Table_Name",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "SqlServerLinkedService",
+											"type": "LinkedServiceReference"
+										}
+									},
+									{
+										"name": "Error Log For Delete Insert_FullLoad",
+										"type": "Lookup",
+										"dependsOn": [
+											{
+												"activity": "Delete Insert Data From Staging to Main Table_FullLoad",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "7.00:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": {
+													"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Delete Insert Data From Staging to Main Table_FullLoad').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',activity('Inner Watermark_Lookup').output.value[0].Source_Collection)}'\n;",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "SqlServerParameterizedDataset",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table_Name": ".",
+													"Schema": "."
+												}
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Inner Watermark_Lookup",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Select * from [Stage].[LookupTable_Attachments]  where Source_Collection = '@{item().Source_Collection}'",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "Error Log For Inner Watermark_Lookup",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Inner Watermark_Lookup",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Inner Watermark_Lookup').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-','AttachmentFolder')}'\n;",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Error Log For Watermark_Lookup",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Watermark_Lookup",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Watermark_Lookup').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-','AttachmentFolder')}'\n;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"DeltaType": {
+				"type": "string"
+			},
+			"Batch": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Standard"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-23T13:07:18Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

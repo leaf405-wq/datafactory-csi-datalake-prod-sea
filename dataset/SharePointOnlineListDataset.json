@@ -1,0 +1,16 @@
+{
+	"name": "SharePointOnlineListDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SharePointOnlineList_Communication",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SharePointOnlineListResource",
+		"schema": [],
+		"typeProperties": {
+			"listName": "CustomerFeedbackReporting"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

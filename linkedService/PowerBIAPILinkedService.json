@@ -1,0 +1,17 @@
+{
+	"name": "PowerBIAPILinkedService",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://api.powerbi.com/v1.0/org/admin/activityevents",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "AadServicePrincipal",
+			"servicePrincipalId": "60d02d07-9531-4f37-bdf7-1a465be9fba4",
+			"tenant": "21d88407-b550-42e4-887f-b92e0fb7e5cb",
+			"aadResourceId": "https://analysis.windows.net/powerbi/api",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDQ0NEI4NEUwLTJFMzYtNEMwOC1BNUY2LTZEMzE0QjcyQzBFMl81NjAzMGE4NC0xNWQxLTQwYjgtYmIzYi01NTY2M2U0Y2VmZGIiDQp9"
+		}
+	}
+}

@@ -1,0 +1,61 @@
+{
+	"name": "Bods_Ingest_Master",
+	"properties": {
+		"activities": [
+			{
+				"name": "Exec_Bods_Ingest_RawDB",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ECC_Ingest_Datalake_Full",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"is_init_only": {
+							"value": "@pipeline().parameters.is_init_only",
+							"type": "Expression"
+						},
+						"project": {
+							"value": "@pipeline().parameters.project",
+							"type": "Expression"
+						},
+						"schedule": {
+							"value": "@pipeline().parameters.schedule",
+							"type": "Expression"
+						},
+						"sync_type": {
+							"value": "@pipeline().parameters.sync_type",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"is_init_only": {
+				"type": "string"
+			},
+			"project": {
+				"type": "string"
+			},
+			"schedule": {
+				"type": "string"
+			},
+			"sync_type": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "BODS Ingest/BODS_Master"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:35:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

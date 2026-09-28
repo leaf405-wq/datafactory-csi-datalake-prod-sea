@@ -1,0 +1,24 @@
+{
+	"name": "ds_SapOpenHub_bw",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_SapOpenHub_bw",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"tb_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SapOpenHubTable",
+		"schema": [],
+		"typeProperties": {
+			"openHubDestinationName": {
+				"value": "@dataset().tb_name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

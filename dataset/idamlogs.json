@@ -1,0 +1,16 @@
+{
+	"name": "idamlogs",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RbacLogs",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureTable",
+		"schema": [],
+		"typeProperties": {
+			"tableName": "UserProfiles"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

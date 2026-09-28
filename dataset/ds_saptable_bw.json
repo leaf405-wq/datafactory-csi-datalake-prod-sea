@@ -1,0 +1,24 @@
+{
+	"name": "ds_saptable_bw",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_saptable_bw",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"tb_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SapTableResource",
+		"schema": [],
+		"typeProperties": {
+			"tableName": {
+				"value": "@dataset().tb_name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

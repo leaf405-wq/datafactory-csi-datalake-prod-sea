@@ -1,0 +1,617 @@
+{
+	"name": "Day3ActivityAutomation",
+	"properties": {
+		"description": "Automation of Day3 Activity",
+		"activities": [
+			{
+				"name": "Until1",
+				"description": "Will Check the count matches.",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('isMatched'), true)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Lookup_Compare_Counts",
+							"description": "SP to check the count comparison",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": "EXEC dbo.Day3Actvity_CountComparision\n ",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset1",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": "errorlog",
+										"Schema": "dbo"
+									}
+								},
+								"firstRowOnly": true
+							}
+						},
+						{
+							"name": "IsMatched",
+							"description": "If Output is 1 then Matched, then exit until.\nOr wait for 10 minutes",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Lookup_Compare_Counts",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "isMatched",
+								"value": {
+									"value": "@equals(activity('Lookup_Compare_Counts').output.firstRow.Result, 1)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "MatchCondition",
+							"description": "Checking whether matched or not",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "IsMatched",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(variables('isMatched'), true)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Wait1",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 600
+										}
+									}
+								]
+							}
+						}
+					],
+					"timeout": "0.4:00:00"
+				}
+			},
+			{
+				"name": "Sending Final Mail",
+				"description": "Sending status of all 3 steps and job completion mail",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Until_Step3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "DECLARE @StatusMessage NVARCHAR(MAX) = '';\r\nDECLARE @bodyMessage NVARCHAR(MAX);\r\nDECLARE @subject NVARCHAR(MAX);\r\n\r\nSELECT @StatusMessage = @StatusMessage + \r\n\r\n    JobName + ': ' + step_name + ': ' + StepStatus + CHAR(13) + CHAR(10) + message + CHAR(13) + CHAR(10)\r\n\r\nFROM (\r\n\r\n    SELECT TOP 3 \r\n\r\n        j.name AS JobName,\r\n\r\n        s.step_name,\r\n\r\n        CASE h.run_status\r\n\r\n            WHEN 0 THEN 'Failed'\r\n\r\n            WHEN 1 THEN 'Succeeded'\r\n\r\n            WHEN 2 THEN 'Retry'\r\n\r\n            WHEN 3 THEN 'Canceled'\r\n\r\n            WHEN 4 THEN 'In Progress'\r\n\r\n            ELSE 'Unknown'\r\n\r\n        END AS StepStatus,\r\n\r\n        h.message\r\n\r\n    FROM msdb.dbo.sysjobhistory h\r\n\r\n    INNER JOIN msdb.dbo.sysjobs j ON h.job_id = j.job_id\r\n\r\n    INNER JOIN msdb.dbo.sysjobsteps s ON h.job_id = s.job_id AND h.step_id = s.step_id\r\n\r\n    WHERE h.step_id > 0\r\n\r\n      AND j.name = 'P4W HANA - Cost and Variance Analysis Reports'\r\n\r\n      AND h.run_date = (SELECT MAX(run_date) FROM msdb.dbo.sysjobhistory WHERE job_id = j.job_id)\r\n\r\n    ORDER BY j.name, h.run_date DESC, h.run_time DESC\r\n\r\n) A;\r\n\r\nSELECT @StatusMessage AS FinalMessage;\r\n\r\n\r\n IF (@StatusMessage LIKE '%Fail%') OR (@StatusMessage LIKE '%Cancel%')\r\n    SET @Subject = 'Job Failure Alert: P4W HANA - Cost and Variance Analysis Reports';\r\nELSE\r\n    SET @Subject = 'Job Success Notification: P4W HANA - Cost and Variance Analysis Reports';\r\n \r\n-- Send the email\r\n\r\nSET @bodyMessage = ISNULL(@StatusMessage, '') + CHAR(13) + CHAR(10) + 'Job execution completed';\r\n\r\nEXEC msdb.dbo.sp_send_dbmail\r\n    @profile_name = 'Day3ActivityMail',\r\n    @recipients = 'DL_MS_Reporting@carestream.com',\r\n    @subject = @Subject,\r\n    @body = @bodyMessage;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset1",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "ErrorLog",
+							"Schema": "dbo"
+						}
+					}
+				}
+			},
+			{
+				"name": "Until_Step1",
+				"description": "Will check if the Job - Step 1 is completed or not\nIf Completed - Send Mail\nor Wait 15 mins",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "JobRunningorNot",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(activity('Step1_Status').output.firstRow.StepStatus, 'In Progress'))\n ",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Step1_Status",
+							"description": "Get the message of Step 1",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": "DECLARE @JobName NVARCHAR(100) = 'P4W HANA - Cost and Variance Analysis Reports';\nDECLARE @StepID INT = 1;\n-- Get latest running or recently finished job\n;WITH LatestActivity AS (\n   SELECT TOP 1\n       ja.job_id,\n       ja.start_execution_date,\n       ja.stop_execution_date,\n       ja.last_executed_step_id\n   FROM msdb.dbo.sysjobactivity ja\n   INNER JOIN msdb.dbo.sysjobs j ON j.job_id = ja.job_id\n   WHERE j.name = @JobName\n   ORDER BY ja.start_execution_date DESC\n),\nStepHistoryFiltered AS (\n   SELECT\n       h.job_id,\n       h.step_id,\n       h.run_status,\n       h.run_date,\n       h.run_time,\n       h.message,\n       CONVERT(DATETIME,\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\n       ) AS run_datetime\n   FROM msdb.dbo.sysjobhistory h\n   INNER JOIN LatestActivity ja ON h.job_id = ja.job_id\n   WHERE h.step_id = @StepID\n     AND CONVERT(DATETIME,\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\n       ) >= ja.start_execution_date\n)\nSELECT\n   j.name AS JobName,\n   s.step_id,\n   s.step_name,\n   h.run_status,\n   h.run_date,\n   h.run_time,\n   h.message,\n   ja.start_execution_date,\n   ja.stop_execution_date,\n   CASE\n       WHEN h.run_status = 1 THEN 'Succeeded'\n       WHEN h.run_status = 0 THEN 'Failed'\n       WHEN ja.stop_execution_date IS NULL AND h.run_status IS NULL THEN 'In Progress'\n       ELSE 'Unknown'\n   END AS StepStatus\nFROM\n   msdb.dbo.sysjobs j\nINNER JOIN\n   msdb.dbo.sysjobsteps s ON j.job_id = s.job_id AND s.step_id = @StepID\nLEFT JOIN\n   LatestActivity ja ON j.job_id = ja.job_id\nLEFT JOIN\n   StepHistoryFiltered h ON j.job_id = h.job_id AND h.step_id = s.step_id\nWHERE\n   j.name = @JobName;",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset1",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": "dbo",
+										"Schema": "ErrorLog"
+									}
+								}
+							}
+						},
+						{
+							"name": "Step1_StatusCondition",
+							"description": "If message is there - Send Mail\nIf not - Wait for 15 minutes",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Step1_Status",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@not(equals(activity('Step1_Status').output.firstRow.StepStatus, 'In Progress'))\n ",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Wait_Step1",
+										"description": "Wait for 15 minutes",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 900
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "SendMail_Step1",
+										"description": "Send the Step 1 Status Mail",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": "DECLARE @StatusMessage NVARCHAR(MAX) = '';\r\nDECLARE @JobName NVARCHAR(100) = 'P4W HANA - Cost and Variance Analysis Reports';\r\nDECLARE @StepID INT = 1;\r\n\r\n;WITH LatestActivity AS (\r\n   SELECT TOP 1\r\n       ja.job_id,\r\n       ja.start_execution_date,\r\n       ja.stop_execution_date,\r\n       ja.last_executed_step_id\r\n   FROM msdb.dbo.sysjobactivity ja\r\n   INNER JOIN msdb.dbo.sysjobs j ON j.job_id = ja.job_id\r\n   WHERE j.name = @JobName\r\n   ORDER BY ja.start_execution_date DESC\r\n),\r\nStepHistoryFiltered AS (\r\n   SELECT TOP 1\r\n       h.job_id,\r\n       h.step_id,\r\n       h.run_status,\r\n       h.run_date,\r\n       h.run_time,\r\n       h.message,\r\n       CONVERT(DATETIME,\r\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\r\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\r\n       ) AS run_datetime\r\n   FROM msdb.dbo.sysjobhistory h\r\n   INNER JOIN LatestActivity ja ON h.job_id = ja.job_id\r\n   WHERE h.step_id = @StepID\r\n     AND CONVERT(DATETIME,\r\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\r\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\r\n       ) >= ja.start_execution_date\r\n)\r\nSELECT @StatusMessage =\r\n   j.name + ' : Step ' + CAST(s.step_id AS VARCHAR(10)) + ' : ' +\r\n   CASE\r\n       WHEN h.run_status = 1 THEN 'Succeeded'\r\n       WHEN h.run_status = 0 THEN 'Failed'\r\n       WHEN ja.stop_execution_date IS NULL AND h.run_status IS NULL THEN 'In Progress'\r\n       ELSE 'Unknown'\r\n   END\r\n   + CHAR(13) + CHAR(10) +\r\n   ISNULL(h.message, 'No message found') \r\nFROM\r\n   msdb.dbo.sysjobs j\r\nINNER JOIN\r\n   msdb.dbo.sysjobsteps s ON j.job_id = s.job_id AND s.step_id = @StepID\r\nLEFT JOIN\r\n   LatestActivity ja ON j.job_id = ja.job_id\r\nLEFT JOIN\r\n   StepHistoryFiltered h ON j.job_id = h.job_id AND h.step_id = s.step_id\r\nWHERE\r\n   j.name = @JobName;\r\n\r\n\r\nSELECT @StatusMessage AS FinalMessage\r\n\r\n -- Send the email\r\nEXEC msdb.dbo.sp_send_dbmail\r\n    @profile_name = 'Day3ActivityMail',\r\n    @recipients = 'DL_MS_Reporting@carestream.com',\r\n    @subject = 'P4W HANA - Cost and Variance Analysis Reports Job Step 1 Status',\r\n    @body = @StatusMessage;",
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "SqlServerParameterizedDataset1",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table_Name": "dbo",
+													"Schema": "ErrorLog"
+												}
+											}
+										}
+									}
+								]
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "Until_Step2",
+				"description": "Will check if the Job - Step 2 is completed or not\nIf Completed - Send Mail\nor Wait 15 mins",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Until_Step1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(activity('Step2_Status').output.firstRow.StepStatus, 'In Progress'))\n ",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Step2_Status",
+							"description": "Get the message of Step 2",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": "DECLARE @JobName NVARCHAR(100) = 'P4W HANA - Cost and Variance Analysis Reports';\nDECLARE @StepID INT = 2;\n-- Get latest running or recently finished job\n;WITH LatestActivity AS (\n   SELECT TOP 1\n       ja.job_id,\n       ja.start_execution_date,\n       ja.stop_execution_date,\n       ja.last_executed_step_id\n   FROM msdb.dbo.sysjobactivity ja\n   INNER JOIN msdb.dbo.sysjobs j ON j.job_id = ja.job_id\n   WHERE j.name = @JobName\n   ORDER BY ja.start_execution_date DESC\n),\nStepHistoryFiltered AS (\n   SELECT\n       h.job_id,\n       h.step_id,\n       h.run_status,\n       h.run_date,\n       h.run_time,\n       h.message,\n       CONVERT(DATETIME,\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\n       ) AS run_datetime\n   FROM msdb.dbo.sysjobhistory h\n   INNER JOIN LatestActivity ja ON h.job_id = ja.job_id\n   WHERE h.step_id = @StepID\n     AND CONVERT(DATETIME,\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\n       ) >= ja.start_execution_date\n)\nSELECT\n   j.name AS JobName,\n   s.step_id,\n   s.step_name,\n   h.run_status,\n   h.run_date,\n   h.run_time,\n   h.message,\n   ja.start_execution_date,\n   ja.stop_execution_date,\n   CASE\n       WHEN h.run_status = 1 THEN 'Succeeded'\n       WHEN h.run_status = 0 THEN 'Failed'\n       WHEN ja.stop_execution_date IS NULL AND h.run_status IS NULL THEN 'In Progress'\n       ELSE 'Unknown'\n   END AS StepStatus\nFROM\n   msdb.dbo.sysjobs j\nINNER JOIN\n   msdb.dbo.sysjobsteps s ON j.job_id = s.job_id AND s.step_id = @StepID\nLEFT JOIN\n   LatestActivity ja ON j.job_id = ja.job_id\nLEFT JOIN\n   StepHistoryFiltered h ON j.job_id = h.job_id AND h.step_id = s.step_id\nWHERE\n   j.name = @JobName;",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset1",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": "dbo",
+										"Schema": "ErrorLog"
+									}
+								}
+							}
+						},
+						{
+							"name": "Step2_StatusCondition",
+							"description": "If message is there - Send Mail\nIf not - Wait for 15 minutes",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Step2_Status",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@not(equals(activity('Step2_Status').output.firstRow.StepStatus, 'In Progress'))\n ",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Wait_Step2",
+										"description": "Wait for 15 minutes",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 900
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "SendMail_Step2",
+										"description": "Send status of Step 2",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": "DECLARE @StatusMessage NVARCHAR(MAX) = '';\r\nDECLARE @JobName NVARCHAR(100) = 'P4W HANA - Cost and Variance Analysis Reports';\r\nDECLARE @StepID INT = 2;\r\n\r\n;WITH LatestActivity AS (\r\n   SELECT TOP 1\r\n       ja.job_id,\r\n       ja.start_execution_date,\r\n       ja.stop_execution_date,\r\n       ja.last_executed_step_id\r\n   FROM msdb.dbo.sysjobactivity ja\r\n   INNER JOIN msdb.dbo.sysjobs j ON j.job_id = ja.job_id\r\n   WHERE j.name = @JobName\r\n   ORDER BY ja.start_execution_date DESC\r\n),\r\nStepHistoryFiltered AS (\r\n   SELECT TOP 1\r\n       h.job_id,\r\n       h.step_id,\r\n       h.run_status,\r\n       h.run_date,\r\n       h.run_time,\r\n       h.message,\r\n       CONVERT(DATETIME,\r\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\r\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\r\n       ) AS run_datetime\r\n   FROM msdb.dbo.sysjobhistory h\r\n   INNER JOIN LatestActivity ja ON h.job_id = ja.job_id\r\n   WHERE h.step_id = @StepID\r\n     AND CONVERT(DATETIME,\r\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\r\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\r\n       ) >= ja.start_execution_date\r\n)\r\nSELECT @StatusMessage =\r\n   j.name + ' : Step ' + CAST(s.step_id AS VARCHAR(10)) + ' : ' +\r\n   CASE\r\n       WHEN h.run_status = 1 THEN 'Succeeded'\r\n       WHEN h.run_status = 0 THEN 'Failed'\r\n       WHEN ja.stop_execution_date IS NULL AND h.run_status IS NULL THEN 'In Progress'\r\n       ELSE 'Unknown'\r\n   END\r\n   + CHAR(13) + CHAR(10) +\r\n   ISNULL(h.message, 'No message found') \r\nFROM\r\n   msdb.dbo.sysjobs j\r\nINNER JOIN\r\n   msdb.dbo.sysjobsteps s ON j.job_id = s.job_id AND s.step_id = @StepID\r\nLEFT JOIN\r\n   LatestActivity ja ON j.job_id = ja.job_id\r\nLEFT JOIN\r\n   StepHistoryFiltered h ON j.job_id = h.job_id AND h.step_id = s.step_id\r\nWHERE\r\n   j.name = @JobName;\r\n\r\n\r\nSELECT @StatusMessage AS FinalMessage\r\n\r\n -- Send the email\r\nEXEC msdb.dbo.sp_send_dbmail\r\n    @profile_name = 'Day3ActivityMail',\r\n    @recipients = 'DL_MS_Reporting@carestream.com',\r\n    @subject = 'P4W HANA - Cost and Variance Analysis Reports Job Step 2 Status',\r\n    @body = @StatusMessage;",
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "SqlServerParameterizedDataset1",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table_Name": "dbo",
+													"Schema": "ErrorLog"
+												}
+											}
+										}
+									}
+								]
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "Until_Step3",
+				"description": "Will check if the Job - Step 3 is completed or not\nIf Completed - Send Mail\nor Wait 15 mins",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Until_Step2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(activity('Step3_Status').output.firstRow.StepStatus, 'In Progress'))\n ",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Step3_Status",
+							"description": "Get the message of Step 3",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": "DECLARE @JobName NVARCHAR(100) = 'P4W HANA - Cost and Variance Analysis Reports';\nDECLARE @StepID INT = 3;\n-- Get latest running or recently finished job\n;WITH LatestActivity AS (\n   SELECT TOP 1\n       ja.job_id,\n       ja.start_execution_date,\n       ja.stop_execution_date,\n       ja.last_executed_step_id\n   FROM msdb.dbo.sysjobactivity ja\n   INNER JOIN msdb.dbo.sysjobs j ON j.job_id = ja.job_id\n   WHERE j.name = @JobName\n   ORDER BY ja.start_execution_date DESC\n),\nStepHistoryFiltered AS (\n   SELECT\n       h.job_id,\n       h.step_id,\n       h.run_status,\n       h.run_date,\n       h.run_time,\n       h.message,\n       CONVERT(DATETIME,\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\n       ) AS run_datetime\n   FROM msdb.dbo.sysjobhistory h\n   INNER JOIN LatestActivity ja ON h.job_id = ja.job_id\n   WHERE h.step_id = @StepID\n     AND CONVERT(DATETIME,\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\n       ) >= ja.start_execution_date\n)\nSELECT\n   j.name AS JobName,\n   s.step_id,\n   s.step_name,\n   h.run_status,\n   h.run_date,\n   h.run_time,\n   h.message,\n   ja.start_execution_date,\n   ja.stop_execution_date,\n   CASE\n       WHEN h.run_status = 1 THEN 'Succeeded'\n       WHEN h.run_status = 0 THEN 'Failed'\n       WHEN ja.stop_execution_date IS NULL AND h.run_status IS NULL THEN 'In Progress'\n       ELSE 'Unknown'\n   END AS StepStatus\nFROM\n   msdb.dbo.sysjobs j\nINNER JOIN\n   msdb.dbo.sysjobsteps s ON j.job_id = s.job_id AND s.step_id = @StepID\nLEFT JOIN\n   LatestActivity ja ON j.job_id = ja.job_id\nLEFT JOIN\n   StepHistoryFiltered h ON j.job_id = h.job_id AND h.step_id = s.step_id\nWHERE\n   j.name = @JobName;",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset1",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": "dbo",
+										"Schema": "ErrorLog"
+									}
+								}
+							}
+						},
+						{
+							"name": "Step3_StatusCondition",
+							"description": "If message is there - Send Mail\nIf not - Wait for 15 minutes",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Step3_Status",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@not(equals(activity('Step3_Status').output.firstRow.StepStatus, 'In Progress'))\n ",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Wait_Step3",
+										"description": "Wait for 15 minutes",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 900
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "SendMail_Step3",
+										"description": "Send status mail of Step 3",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "SqlServerSource",
+												"sqlReaderQuery": "DECLARE @StatusMessage NVARCHAR(MAX) = '';\r\nDECLARE @JobName NVARCHAR(100) = 'P4W HANA - Cost and Variance Analysis Reports';\r\nDECLARE @StepID INT = 3;\r\n\r\n;WITH LatestActivity AS (\r\n   SELECT TOP 1\r\n       ja.job_id,\r\n       ja.start_execution_date,\r\n       ja.stop_execution_date,\r\n       ja.last_executed_step_id\r\n   FROM msdb.dbo.sysjobactivity ja\r\n   INNER JOIN msdb.dbo.sysjobs j ON j.job_id = ja.job_id\r\n   WHERE j.name = @JobName\r\n   ORDER BY ja.start_execution_date DESC\r\n),\r\nStepHistoryFiltered AS (\r\n   SELECT TOP 1\r\n       h.job_id,\r\n       h.step_id,\r\n       h.run_status,\r\n       h.run_date,\r\n       h.run_time,\r\n       h.message,\r\n       CONVERT(DATETIME,\r\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\r\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\r\n       ) AS run_datetime\r\n   FROM msdb.dbo.sysjobhistory h\r\n   INNER JOIN LatestActivity ja ON h.job_id = ja.job_id\r\n   WHERE h.step_id = @StepID\r\n     AND CONVERT(DATETIME,\r\n           STUFF(STUFF(CONVERT(VARCHAR(8), h.run_date), 7, 0, '-'), 5, 0, '-') + ' ' +\r\n           STUFF(STUFF(RIGHT('000000' + CONVERT(VARCHAR(6), h.run_time), 6), 5, 0, ':'), 3, 0, ':'), 120\r\n       ) >= ja.start_execution_date\r\n)\r\nSELECT @StatusMessage =\r\n   j.name + ' : Step ' + CAST(s.step_id AS VARCHAR(10)) + ' : ' +\r\n   CASE\r\n       WHEN h.run_status = 1 THEN 'Succeeded'\r\n       WHEN h.run_status = 0 THEN 'Failed'\r\n       WHEN ja.stop_execution_date IS NULL AND h.run_status IS NULL THEN 'In Progress'\r\n       ELSE 'Unknown'\r\n   END\r\n   + CHAR(13) + CHAR(10) +\r\n   ISNULL(h.message, 'No message found') \r\nFROM\r\n   msdb.dbo.sysjobs j\r\nINNER JOIN\r\n   msdb.dbo.sysjobsteps s ON j.job_id = s.job_id AND s.step_id = @StepID\r\nLEFT JOIN\r\n   LatestActivity ja ON j.job_id = ja.job_id\r\nLEFT JOIN\r\n   StepHistoryFiltered h ON j.job_id = h.job_id AND h.step_id = s.step_id\r\nWHERE\r\n   j.name = @JobName;\r\n\r\n\r\nSELECT @StatusMessage AS FinalMessage\r\n\r\n -- Send the email\r\nEXEC msdb.dbo.sp_send_dbmail\r\n    @profile_name = 'Day3ActivityMail',\r\n    @recipients = 'DL_MS_Reporting@carestream.com',\r\n    @subject = 'P4W HANA - Cost and Variance Analysis Reports Job Step 3 Status',\r\n    @body = @StatusMessage;",
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "SqlServerParameterizedDataset1",
+												"type": "DatasetReference",
+												"parameters": {
+													"Table_Name": "dbo",
+													"Schema": "ErrorLog"
+												}
+											}
+										}
+									}
+								]
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "JobRunningorNot",
+				"description": "If not running - Trigger the P4W HANA - Cost and Variance Analysis Reports job\nIf running - exit",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Check_Job_Status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Check_Job_Status').output.firstRow.JobStatus, 'NotRunning' )",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Job Task",
+							"description": "Triggering P4W HANA - Cost and Variance Analysis Reports",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "msdb.dbo.sp_start_job",
+								"storedProcedureParameters": {
+									"job_name": {
+										"value": "P4W HANA - Cost and Variance Analysis Reports",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServerLinkedService",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Check_Job_Status",
+				"description": "Check if the job P4W HANA - Cost and Variance Analysis Reports is running or not running",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Until1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT CASE\r\n        WHEN EXISTS (\r\n            SELECT 1\r\n            FROM msdb.dbo.sysjobs j\r\n            JOIN msdb.dbo.sysjobactivity a ON j.job_id = a.job_id\r\n            WHERE j.name = 'YourJobNameHere'\r\n            AND a.stop_execution_date IS NULL  -- Job is running\r\n            AND a.start_execution_date IS NOT NULL\r\n        )\r\n        THEN 'Running'\r\n        ELSE 'NotRunning'\r\n      END AS JobStatus;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset1",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "dbo",
+							"Schema": "ErrorLog"
+						}
+					}
+				}
+			},
+			{
+				"name": "Call PBI Refresh Logic APP",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Sending Final Mail",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://day3automationrefreshpbi.azurewebsites.net:443/api/Day3AutomationPBIRefresh/triggers/When_a_HTTP_request_is_received/invoke?api-version=2022-05-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=Q60vSSFU0riZEtkjtw34PtLr2nCyY-_eTtA2ZLNCJuw"
+				}
+			}
+		],
+		"variables": {
+			"isMatched": {
+				"type": "Boolean"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:22:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

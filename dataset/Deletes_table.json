@@ -1,0 +1,16 @@
+{
+	"name": "Deletes_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureTableStorage_deletes",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureTable",
+		"schema": [],
+		"typeProperties": {
+			"tableName": "Deletes"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

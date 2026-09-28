@@ -1,0 +1,29 @@
+{
+	"name": "ls_mariadb_plm",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "MariaDB",
+		"typeProperties": {
+			"server": "10.115.199.141",
+			"port": "33306",
+			"database": "prd_meicloud_plm",
+			"username": "reader",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-plm-password"
+			},
+			"driverVersion": "v2",
+			"sslMode": 1,
+			"useSystemTrustStore": 0
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

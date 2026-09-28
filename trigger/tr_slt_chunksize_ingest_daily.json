@@ -1,0 +1,32 @@
+{
+	"name": "tr_slt_chunksize_ingest_daily",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "SLT_Chunksize_Ingest_Datalake_ByInt",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "slt",
+					"schedule": "daily",
+					"sync_type": "full",
+					"target_system": "datalake",
+					"src_system": "vhcshp50ai01_P50_00_big"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Hour",
+				"interval": 8,
+				"startTime": "2026-07-04T11:23:00",
+				"timeZone": "China Standard Time"
+			}
+		}
+	}
+}

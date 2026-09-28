@@ -1,0 +1,24 @@
+{
+	"name": "tr_disable",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_ENT_DELTA_3W_bk",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 15,
+				"startTime": "2026-08-22T09:57:00",
+				"timeZone": "China Standard Time"
+			}
+		}
+	}
+}

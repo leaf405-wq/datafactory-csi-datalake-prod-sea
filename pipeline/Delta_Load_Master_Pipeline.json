@@ -1,0 +1,141 @@
+{
+	"name": "Delta_Load_Master_Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Exec_SapC4cAzureSqlStandard_DeltaLoad",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Standard_DeltaLoad",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Batch": {
+							"value": "@pipeline().parameters.Batch",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Exec_C4cSqlSerevrStandard_DeltaLoad_Reference",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exec_SapC4cAzureSqlStandard_DeltaLoad",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Standard_DeltaLoad_Dependent",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Batch": {
+							"value": "@pipeline().parameters.Batch",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Update Parent_Load",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Exec_C4cSqlSerevrStandard_DeltaLoad_Reference",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update Stage.Lookup_Table Set Parent_Load=1 OUTPUT 1",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Exec_SapC4cAzureSqlCustom_DeltaLoad",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exec_SapC4cAzureSqlStandard_DeltaLoad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Custom_DeltaLoad",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"Batch": {
+							"value": "@pipeline().parameters.Batch",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"Batch": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"ObjectTypes": {
+				"type": "String",
+				"defaultValue": "[\"is null\",\"is not null\"]"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:36:20Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

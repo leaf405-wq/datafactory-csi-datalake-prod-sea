@@ -1,0 +1,25 @@
+{
+	"name": "SapEcc1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "URL - https://10.114.146.66:44300/",
+		"annotations": [],
+		"type": "SapEcc",
+		"typeProperties": {
+			"url": "https://vhhkhd90ci.sap.carestream-int.com:44300/sap/opu/odata/sap/zpp_forecast_srv",
+			"username": "Z_CHX_SFUSER",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-ecc-api-password"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

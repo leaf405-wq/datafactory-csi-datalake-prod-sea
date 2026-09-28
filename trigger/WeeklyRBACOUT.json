@@ -1,0 +1,42 @@
+{
+	"name": "WeeklyRBACOUT",
+	"properties": {
+		"description": "From RBAC Staging DB into Datalake",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_RBAC_OUT_TruncateLoad_csi",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-08-19T11:19:00Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						19
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday",
+						"Sunday",
+						"Saturday"
+					]
+				}
+			}
+		}
+	}
+}

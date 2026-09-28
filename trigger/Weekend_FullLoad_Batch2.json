@@ -1,0 +1,40 @@
+{
+	"name": "Weekend_FullLoad_Batch2",
+	"properties": {
+		"description": "Every Sunday all collections",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_FullLoad",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "2",
+					"DeltaType": "AND DeltaType in ('D','C')"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2020-12-20T07:00:00Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						4
+					],
+					"weekDays": [
+						"Sunday"
+					]
+				}
+			}
+		}
+	}
+}

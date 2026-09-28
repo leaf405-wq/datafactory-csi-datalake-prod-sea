@@ -1,0 +1,713 @@
+{
+	"name": "Copy_Files_Parent_Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.Items.Files",
+						"type": "Expression"
+					},
+					"batchCount": 30,
+					"activities": [
+						{
+							"name": "no_company_check",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "add_constant_hir",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@item().sp_enable",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Stored procedure1",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[dbo].[UpdateCompanyValue]",
+											"storedProcedureParameters": {
+												"TableName": {
+													"value": {
+														"value": "@item().target_table_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "SqlServerLinkedService",
+											"type": "LinkedServiceReference"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "add_constant_hir",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "File_load_into_datalake",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(\n    activity('Get Metadata1').output.exists,\n    item().add_hir_enable\n)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "add_source_hir",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[dbo].[sp_hir_upsert]",
+											"storedProcedureParameters": {
+												"TableName": {
+													"value": {
+														"value": "@item().target_table_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "SqlServerLinkedService",
+											"type": "LinkedServiceReference"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Get Metadata1",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_ftp_file",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@item().file_name",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"exists"
+								],
+								"storeSettings": {
+									"type": "FileServerReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						},
+						{
+							"name": "File_load_into_datalake",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Get Metadata1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@activity('Get Metadata1').output.exists",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "ftp_to_datalake",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "FileServerReadSettings",
+													"recursive": true,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "SqlServerSink",
+												"writeBehavior": {
+													"value": "@item().load_type",
+													"type": "Expression"
+												},
+												"sqlWriterUseTableLock": false,
+												"upsertSettings": {
+													"useTempDB": true,
+													"keys": {
+														"value": "@item().key_columns",
+														"type": "Expression"
+													}
+												},
+												"tableOption": "autoCreate"
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "ds_ftp_file1",
+												"type": "DatasetReference",
+												"parameters": {
+													"FileName": "@item().file_name"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_file_to_datalake",
+												"type": "DatasetReference",
+												"parameters": {
+													"TableName": {
+														"value": "@concat(item().target_table_name,'_HIR_TMP')",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "File_archival_removal",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "no_company_check",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@activity('Get Metadata1').output.exists",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "deletefile",
+										"type": "Delete",
+										"dependsOn": [
+											{
+												"activity": "Archival_movement",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataset": {
+												"referenceName": "ds_ftp_file1",
+												"type": "DatasetReference",
+												"parameters": {
+													"FileName": {
+														"value": "@item().file_name",
+														"type": "Expression"
+													}
+												}
+											},
+											"enableLogging": false,
+											"storeSettings": {
+												"type": "FileServerReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											}
+										}
+									},
+									{
+										"name": "Archival_movement",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "FileServerReadSettings",
+													"recursive": true,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "FileServerWriteSettings",
+													"copyBehavior": "PreserveHierarchy"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "ds_ftp_file1",
+												"type": "DatasetReference",
+												"parameters": {
+													"FileName": "@item().file_name"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_ftp_file_archival",
+												"type": "DatasetReference",
+												"parameters": {
+													"FileName": {
+														"value": "@item().file_name",
+														"type": "Expression"
+													},
+													"TargetFolder": "@concat('Archival_',formatDateTime(utcNow(),'yyyyMMdd'))"
+												}
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "exec_CSH_CREATE_MMBPC",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ForEach",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "dbo.CSH_CREATE_MMBPC "
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqlserver_datalake",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"db_name": "rawdb"
+					}
+				}
+			},
+			{
+				"name": "exec CSH_CREATE_BPC_IN_GOLD",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "exec_CSH_CREATE_MMBPC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "CSH_CREATE_BPC_IN_GOLD"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqlserver_datalake",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"db_name": "rawdb"
+					}
+				}
+			},
+			{
+				"name": "exec ETL_LOAD_BPC_DIMPROFITCENTER",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "exec CSH_CREATE_BPC_IN_GOLD",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "ETL_LOAD_BPC_DIMPROFITCENTER"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqlserver_datalake",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"db_name": "golddb"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"Items": {
+				"type": "object",
+				"defaultValue": {
+					"Files": [
+						{
+							"file_name": "BPC_COSTS.txt",
+							"load_type": "Insert",
+							"target_table_name": "BPC_COSTS",
+							"key_columns": [],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_DEST_ALL.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_DEST_ALL",
+							"key_columns": [
+								"CTRY"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_QPR.txt",
+							"load_type": "Insert",
+							"target_table_name": "BPC_QPR",
+							"key_columns": [],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_QPR_COPA.txt",
+							"load_type": "Insert",
+							"target_table_name": "BPC_QPR_COPA",
+							"key_columns": [],
+							"sp_enable": true,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "MM_BPC_STAT.txt",
+							"load_type": "Insert",
+							"target_table_name": "MM_BPC_STAT",
+							"key_columns": [],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "MM_BPC_TMP.txt",
+							"load_type": "Insert",
+							"target_table_name": "MM_BPC_TMP",
+							"key_columns": [],
+							"sp_enable": true,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "Z_BPC_MD_PC.txt",
+							"load_type": "Upsert",
+							"target_table_name": "Z_BPC_MD_PC",
+							"key_columns": [
+								"PCID"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "Z_BPC_MD_CTRY.txt",
+							"load_type": "Upsert",
+							"target_table_name": "Z_BPC_MD_CTRY",
+							"key_columns": [
+								"CTRYID"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_DIMACCOUNT.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_DIMACCOUNT",
+							"key_columns": [
+								"ID1"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_DIMPROFITCENTER.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_DIMPROFITCENTER",
+							"key_columns": [
+								"ID1"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_MBRACCOUNT.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_MBRACCOUNT",
+							"key_columns": [
+								"ID"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_MBRPROFITCENTER.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_MBRPROFITCENTER",
+							"key_columns": [
+								"ID"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "Z_BPC_ACTAOP.txt",
+							"load_type": "Insert",
+							"target_table_name": "Z_BPC_ACTAOP",
+							"key_columns": [],
+							"sp_enable": true,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "Z_BPC_OUTLOOK.txt",
+							"load_type": "Insert",
+							"target_table_name": "Z_BPC_OUTLOOK",
+							"key_columns": [],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_PC.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_PC",
+							"key_columns": [
+								"PC"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_FA.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_FA",
+							"key_columns": [
+								"ID"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_ACC.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_ACC",
+							"key_columns": [
+								"ID"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_INV.txt",
+							"load_type": "Insert",
+							"target_table_name": "BPC_INV",
+							"key_columns": [],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_COMP.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_COMP",
+							"key_columns": [
+								"ID"
+							],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_DEST.txt",
+							"load_type": "Upsert",
+							"target_table_name": "BPC_DEST",
+							"key_columns": [
+								"CTRY"
+							],
+							"sp_enable": false,
+							"add_hir_enable": false
+						},
+						{
+							"file_name": "BPC_QTY.txt",
+							"load_type": "Insert",
+							"target_table_name": "BPC_QTY",
+							"key_columns": [],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_QTY_DSBM.txt",
+							"load_type": "Insert",
+							"target_table_name": "BPC_QTY_DSBM",
+							"key_columns": [],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_REV.txt",
+							"load_type": "Insert",
+							"target_table_name": "BPC_REV",
+							"key_columns": [],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "BPC_COGS.txt",
+							"load_type": "Insert",
+							"target_table_name": "BPC_COGS",
+							"key_columns": [],
+							"sp_enable": false,
+							"add_hir_enable": true
+						},
+						{
+							"file_name": "Z_BPC_AOP.txt",
+							"load_type": "Insert",
+							"target_table_name": "Z_BPC_AOP",
+							"key_columns": [],
+							"sp_enable": true,
+							"add_hir_enable": true
+						}
+					]
+				}
+			}
+		},
+		"variables": {
+			"Is_file_avabile": {
+				"type": "String"
+			},
+			"Is_file_ava": {
+				"type": "Boolean"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-25T07:55:48Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

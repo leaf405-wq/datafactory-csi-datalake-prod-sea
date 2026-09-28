@@ -1,0 +1,44 @@
+{
+	"name": "tr_bw_gmat_mon_to_fri_onceday",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "BW_Ingest_GMAT_Full",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods",
+					"schedule": "mon_to_fri_onceday",
+					"sync_type": "full",
+					"target_system": "gmat",
+					"src_system": "bw"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-13T07:09:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"hours": [
+						1
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

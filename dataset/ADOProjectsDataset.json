@@ -1,0 +1,16 @@
+{
+	"name": "ADOProjectsDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ODataProjectLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "ODataResource",
+		"schema": [],
+		"typeProperties": {
+			"path": "Projects"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,235 @@
+{
+	"name": "JF_DP_SDP_Mix",
+	"properties": {
+		"activities": [
+			{
+				"name": "JF_DP_SDP_full",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "JF_DP_SDP_Delta",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "JF_DP_SDP_noschedule_vw",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"is_init_only": 0,
+						"project": "bods_JF_DP_SDP",
+						"schedule": "noschedule",
+						"sync_type": "full",
+						"target_system": "Datalake",
+						"src_system": "Extractor(ECC)"
+					}
+				}
+			},
+			{
+				"name": "JF_DP_SDP_Delta",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "JF_DP_SDP_Delta",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"is_init_only": 0,
+						"project": "bods_JF_DP_SDP",
+						"schedule": "noschedule",
+						"sync_type": "insert",
+						"target_system": "Datalake",
+						"src_system": "Extractor(ECC)"
+					}
+				}
+			},
+			{
+				"name": "send fail email",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "JF_DP_SDP_Delta",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[metadata].[sp_SendJobStatusEmail]",
+					"storedProcedureParameters": {
+						"JobName": {
+							"value": "JF_DP_SDP_Delta",
+							"type": "String"
+						},
+						"Status": {
+							"value": "FAILED",
+							"type": "String"
+						},
+						"ErrorMessage": {
+							"value": {
+								"value": "@activity('JF_DP_SDP_Delta').error.Message",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"RunId": {
+							"value": {
+								"value": "@activity('JF_DP_SDP_Delta').pipelineRunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Recipients": {
+							"value": "nicole.lu@carestream.com",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqlserver_datalake",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"db_name": "meta_config"
+					}
+				}
+			},
+			{
+				"name": "send fail email_copy1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "JF_DP_SDP_full",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[metadata].[sp_SendJobStatusEmail]",
+					"storedProcedureParameters": {
+						"JobName": {
+							"value": "JF_DP_SDP_full",
+							"type": "String"
+						},
+						"Status": {
+							"value": "FAILED",
+							"type": "String"
+						},
+						"ErrorMessage": {
+							"value": {
+								"value": "@activity('JF_DP_SDP_full').error.Message",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"RunId": {
+							"value": {
+								"value": "@activity('JF_DP_SDP_full').pipelineRunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Recipients": {
+							"value": "nicole.lu@carestream.com",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqlserver_datalake",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"db_name": "meta_config"
+					}
+				}
+			},
+			{
+				"name": "send success mail",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "JF_DP_SDP_full",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[metadata].[sp_SendJobStatusEmail]",
+					"storedProcedureParameters": {
+						"JobName": {
+							"value": "JF_DP_SDP",
+							"type": "String"
+						},
+						"Status": {
+							"value": "SUCCESS",
+							"type": "String"
+						},
+						"RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Recipients": {
+							"value": "nicole.lu@carestream.com;arrow.zhang@carestream.com",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sqlserver_datalake",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"db_name": "meta_config"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "BODS Ingest/Bods_Ingest_Standard/bods_ingest_full/ECC_API_Ingest_Datalake"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-17T05:29:30Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

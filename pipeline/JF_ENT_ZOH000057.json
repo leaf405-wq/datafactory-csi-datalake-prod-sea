@@ -1,0 +1,2504 @@
+{
+	"name": "JF_ENT_ZOH000057",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get_BodsMeta_Data",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderStoredProcedureName": "[metadata].[get_metadata]",
+						"storedProcedureParameters": {
+							"is_init_only": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.is_init_only",
+									"type": "Expression"
+								}
+							},
+							"project": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.project",
+									"type": "Expression"
+								}
+							},
+							"schedule": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.schedule",
+									"type": "Expression"
+								}
+							},
+							"sync_type": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.sync_type",
+									"type": "Expression"
+								}
+							},
+							"src_system": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.src_system",
+									"type": "Expression"
+								}
+							},
+							"target_system": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.target_system",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sqlsever_datalake",
+						"type": "DatasetReference",
+						"parameters": {
+							"tb_name": ".",
+							"schema": "metadata",
+							"db_name": "meta_config"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ByTable_Ingest",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get_BodsMeta_Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get_BodsMeta_Data').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copydata",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Copydata_copy2",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SapTableSource",
+									"rfcTableOptions": "CALYEAR GT '2016'",
+									"customRfcReadTableFunctionModule": "",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": true
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "CALDAY",
+												"type": "String",
+												"physicalType": "D"
+											},
+											"sink": {
+												"name": "CALDAY",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCUSTOMER",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZCUSTOMER",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZMATERIAL",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZMATERIAL",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "BILL_NUM",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "BILL_NUM",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "BILL_ITEM",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "BILL_ITEM",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSRCDATA",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZSRCDATA",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "RECORDMODE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "RECORDMODE",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZBILLTYPE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZBILLTYPE",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ITEM_CATEG",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ITEM_CATEG",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DOC_NUMBER",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "DOC_NUMBER",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPAYER",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZPAYER",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSHIP_TO",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZSHIP_TO",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCUSTSLS",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZCUSTSLS",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSALESORG",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZSALESORG",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DISTR_CHAN",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "DISTR_CHAN",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DIVISION",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "DIVISION",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZMAT_SALE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZMAT_SALE",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZMAT_SO",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZMAT_SO",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "PLANT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "PLANT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ROUTE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ROUTE",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPRFT_CTR",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZPRFT_CTR",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPO_NUMBR",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZPO_NUMBR",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZORDER_DT",
+												"type": "String",
+												"physicalType": "D"
+											},
+											"sink": {
+												"name": "ABIC_ZORDER_DT",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "GI_DATE",
+												"type": "String",
+												"physicalType": "D"
+											},
+											"sink": {
+												"name": "GI_DATE",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CALMONTH",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "CALMONTH",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CALWEEK",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "CALWEEK",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CALQUARTER",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "CALQUARTER",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CALYEAR",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "CALYEAR",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "FISCPER",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "FISCPER",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "FISCVARNT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "FISCVARNT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZOLDCUST",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZOLDCUST",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZOLDMATL",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZOLDMATL",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZFREE_IND",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZFREE_IND",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZINT_SIND",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZINT_SIND",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZOUT_IND",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZOUT_IND",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "GRS_WGT_DL",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "GRS_WGT_DL",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "NET_WGT_DL",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "NET_WGT_DL",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "INV_QTY",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "INV_QTY",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAINDCEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAINDCEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAINDCLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAINDCLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAINDCUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAINDCUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAREBEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAREBEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAREBLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAREBLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAREBUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_AREBUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZBVALEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZBVALEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZBVALLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZBVALLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZBVALUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZBVALUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZGVAL_EUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZGVAL_EUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZGVAL_LOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZGVAL_LOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZGVAL_USD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZGVAL_USD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZLIPRCEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZLIPRCEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZLIPRCLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZLIPRCLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZLIPRCUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZLIPRCUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPKTSLEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZPKTSLEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPKTSLLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZPKTSLLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPKTSLUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_PKTSLUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZRPT_QTY",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZRPT_QTY",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSREBEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSREBEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSREBLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSREBLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSREBUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSREBUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "UNIT_OF_WT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "UNIT_OF_WT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "SALES_UNIT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "SALES_UNIT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "LOC_CURRCY",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "LOC_CURRCY",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "UNIT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "UNIT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "SHIP_COND",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "SHIP_COND",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "PMNTTRMS",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "PMNTTRMS",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DOC_TYPE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "DOC_TYPE",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "BILLTOPRTY",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "BILLTOPRTY",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCOST_LOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZCOST_LOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCOST_USD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZCOST_USD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "DOC_ITEM",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "DOC_ITEM",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSALTILOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSALTILOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSALTIUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSALTIUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "MATL_GRP_1",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "MATL_GRP_1",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCUSTPGRP",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZCUSTPGRP",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPLST_TYP",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZPLST_TYP",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "SALES_OFF",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "SALES_OFF",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZADDRNRBP",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZADDRNRBP",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZADDRNRPY",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZADDRNRPY",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZADDRNRSH",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZADDRNRSH",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZADDRNRSP",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZADDRNRSP",
+												"physicalType": "nvarchar"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_saptable_bw",
+									"type": "DatasetReference",
+									"parameters": {
+										"tb_name": {
+											"value": "@item().src_table_name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sqlserver_gmat",
+									"type": "DatasetReference",
+									"parameters": {
+										"db_name": "gmat",
+										"tb_name": {
+											"value": "@item().src_table_name",
+											"type": "Expression"
+										},
+										"schema_name": "stage_bods"
+									}
+								}
+							]
+						},
+						{
+							"name": "sp_updateerror_log",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copydata",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_update_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "@activity('Copydata').error.message",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "sp_update_log",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "EXEC_SP",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_update_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "@{REPLACE(activity('EXEC_SP').Error.Message,'''','')}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "sp_write_log",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_write_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "Start",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "exec data sync",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copydata",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[SYNC_JF_ENT_ZOH000057]"
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_gmat",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "gmat"
+								}
+							}
+						},
+						{
+							"name": "sp_update_log_syncdata",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "exec data sync",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_update_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "sync sucess",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "sp_update_log_sync_error",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "exec data sync",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_update_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "@{REPLACE(activity('exec data sync').Error.Message,'''','')}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "EXEC_SP",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "exec data sync",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "METADATA.SYNC_JF_ENT_COPA"
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_gmat",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "GMAT"
+								}
+							}
+						},
+						{
+							"name": "Copydata_copy2",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "sp_write_log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SapTableSource",
+									"rfcTableOptions": "CALYEAR LE '2016'",
+									"customRfcReadTableFunctionModule": "",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"preCopyScript": {
+										"value": "DROP TABLE IF EXISTS @{concat('stage_bods','.',item().src_table_name)}",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": true,
+									"tableOption": "autoCreate"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "CALDAY",
+												"type": "String",
+												"physicalType": "D"
+											},
+											"sink": {
+												"name": "CALDAY",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCUSTOMER",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZCUSTOMER",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZMATERIAL",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZMATERIAL",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "BILL_NUM",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "BILL_NUM",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "BILL_ITEM",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "BILL_ITEM",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSRCDATA",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZSRCDATA",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "RECORDMODE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "RECORDMODE",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZBILLTYPE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZBILLTYPE",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ITEM_CATEG",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ITEM_CATEG",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DOC_NUMBER",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "DOC_NUMBER",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPAYER",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZPAYER",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSHIP_TO",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZSHIP_TO",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCUSTSLS",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZCUSTSLS",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSALESORG",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZSALESORG",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DISTR_CHAN",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "DISTR_CHAN",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DIVISION",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "DIVISION",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZMAT_SALE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZMAT_SALE",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZMAT_SO",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZMAT_SO",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "PLANT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "PLANT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ROUTE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ROUTE",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPRFT_CTR",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZPRFT_CTR",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPO_NUMBR",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZPO_NUMBR",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZORDER_DT",
+												"type": "String",
+												"physicalType": "D"
+											},
+											"sink": {
+												"name": "ABIC_ZORDER_DT",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "GI_DATE",
+												"type": "String",
+												"physicalType": "D"
+											},
+											"sink": {
+												"name": "GI_DATE",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CALMONTH",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "CALMONTH",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CALWEEK",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "CALWEEK",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CALQUARTER",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "CALQUARTER",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CALYEAR",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "CALYEAR",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "FISCPER",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "FISCPER",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "FISCVARNT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "FISCVARNT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZOLDCUST",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZOLDCUST",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZOLDMATL",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZOLDMATL",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZFREE_IND",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZFREE_IND",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZINT_SIND",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZINT_SIND",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZOUT_IND",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZOUT_IND",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "GRS_WGT_DL",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "GRS_WGT_DL",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "NET_WGT_DL",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "NET_WGT_DL",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "INV_QTY",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "INV_QTY",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAINDCEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAINDCEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAINDCLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAINDCLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAINDCUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAINDCUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAREBEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAREBEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAREBLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZAREBLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZAREBUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_AREBUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZBVALEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZBVALEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZBVALLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZBVALLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZBVALUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZBVALUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZGVAL_EUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZGVAL_EUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZGVAL_LOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZGVAL_LOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZGVAL_USD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZGVAL_USD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZLIPRCEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZLIPRCEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZLIPRCLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZLIPRCLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZLIPRCUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZLIPRCUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPKTSLEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZPKTSLEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPKTSLLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZPKTSLLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPKTSLUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_PKTSLUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZRPT_QTY",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZRPT_QTY",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSREBEUR",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSREBEUR",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSREBLOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSREBLOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSREBUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSREBUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "UNIT_OF_WT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "UNIT_OF_WT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "SALES_UNIT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "SALES_UNIT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "LOC_CURRCY",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "LOC_CURRCY",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "UNIT",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "UNIT",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "SHIP_COND",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "SHIP_COND",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "PMNTTRMS",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "PMNTTRMS",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DOC_TYPE",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "DOC_TYPE",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "BILLTOPRTY",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "BILLTOPRTY",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCOST_LOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZCOST_LOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCOST_USD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZCOST_USD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "DOC_ITEM",
+												"type": "String",
+												"physicalType": "N"
+											},
+											"sink": {
+												"name": "DOC_ITEM",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSALTILOC",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSALTILOC",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZSALTIUSD",
+												"type": "Decimal",
+												"physicalType": "P"
+											},
+											"sink": {
+												"name": "ABIC_ZSALTIUSD",
+												"physicalType": "decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "MATL_GRP_1",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "MATL_GRP_1",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZCUSTPGRP",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZCUSTPGRP",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZPLST_TYP",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZPLST_TYP",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "SALES_OFF",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "SALES_OFF",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZADDRNRBP",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZADDRNRBP",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZADDRNRPY",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZADDRNRPY",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZADDRNRSH",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZADDRNRSH",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "/BIC/ZADDRNRSP",
+												"type": "String",
+												"physicalType": "C"
+											},
+											"sink": {
+												"name": "ABIC_ZADDRNRSP",
+												"physicalType": "nvarchar"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_saptable_bw",
+									"type": "DatasetReference",
+									"parameters": {
+										"tb_name": {
+											"value": "@item().src_table_name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sqlserver_gmat",
+									"type": "DatasetReference",
+									"parameters": {
+										"db_name": "gmat",
+										"tb_name": {
+											"value": "@item().src_table_name",
+											"type": "Expression"
+										},
+										"schema_name": "stage_bods"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"is_init_only": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"project": {
+				"type": "string",
+				"defaultValue": "bods_JF_ENT_ZOH000057"
+			},
+			"schedule": {
+				"type": "string",
+				"defaultValue": "mon_to_fri_onceday_04_20"
+			},
+			"sync_type": {
+				"type": "string",
+				"defaultValue": "insert"
+			},
+			"target_system": {
+				"type": "string",
+				"defaultValue": "gmat"
+			},
+			"src_system": {
+				"type": "string",
+				"defaultValue": "bw"
+			}
+		},
+		"variables": {
+			"sp_list": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "BODS Ingest/Bods_Ingest_Delta/BW_Ingest_GMAT_Delta"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-22T12:57:04Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

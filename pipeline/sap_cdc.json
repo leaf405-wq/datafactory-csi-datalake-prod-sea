@@ -1,0 +1,55 @@
+{
+	"name": "sap_cdc",
+	"properties": {
+		"activities": [
+			{
+				"name": "Data flow1",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_sap_cdc",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"source1": {
+								"tb_name": "2LIS_12_VCHDR_DP"
+							},
+							"sink1": {
+								"tbname": "ODP_2LIS12VCHDR"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "ls_blob_bods_stage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "bods-stage-log"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"continuationSettings": {
+						"customizedCheckpointKey": "ab183e52-5c79-40ad-b019-f9a7ff6b7c16"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "SWO_Testing"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-22T13:48:28Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,40 @@
+{
+	"name": "ds_saptable_chunksize_ecc",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_saptable_chunksize_ec",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"rowCount": {
+					"value": "@dataset().rowcount",
+					"type": "Expression"
+				},
+				"rowSkips": {
+					"value": "@dataset().rowskips",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"tb_name": {
+				"type": "string"
+			},
+			"rowcount": {
+				"type": "int"
+			},
+			"rowskips": {
+				"type": "int"
+			}
+		},
+		"annotations": [],
+		"type": "SapTableResource",
+		"schema": [],
+		"typeProperties": {
+			"tableName": {
+				"value": "@dataset().tb_name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
