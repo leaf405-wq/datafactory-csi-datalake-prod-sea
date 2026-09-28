@@ -1,0 +1,32 @@
+{
+	"name": "tr_slt_full_byyear_0330",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Child_Process_ByYear",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-08-20T05:19:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						3
+					]
+				}
+			}
+		}
+	}
+}

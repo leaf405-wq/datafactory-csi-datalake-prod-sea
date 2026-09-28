@@ -1,0 +1,25 @@
+{
+	"name": "datafactory-csi-datalake-prod-sea",
+	"properties": {
+		"globalParameters": {
+			"c4c_api_hostname": {
+				"type": "string",
+				"value": "my370316"
+			},
+			"mastercontrol_url": {
+				"type": "string",
+				"value": "https://csi.mastercontrol.com/csi/ws/jsonBridge.cfm"
+			}
+		},
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "southeastasia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "e349291e-9ae2-461c-96a5-e15e265c012e",
+		"tenantId": "21d88407-b550-42e4-887f-b92e0fb7e5cb"
+	}
+}

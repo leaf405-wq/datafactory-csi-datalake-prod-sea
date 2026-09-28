@@ -1,0 +1,52 @@
+{
+	"name": "tr_ecc_md_stg_sunday_through_friday_0559_repeat360",
+	"properties": {
+		"description": "sunday_through_friday_0559_repeat360",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_SSM_CUST",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_SSM_CUST",
+					"schedule": "sunday_through_friday_0559_repeat360",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-01T05:31:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						59
+					],
+					"hours": [
+						5,
+						11,
+						17,
+						23
+					],
+					"weekDays": [
+						"Sunday",
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

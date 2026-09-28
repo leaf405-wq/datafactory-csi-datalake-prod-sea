@@ -1,0 +1,233 @@
+{
+	"name": "MasterControlLoad_Master_Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute MasterControlToDataLake_Media",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_Media",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute MasterControlToDataLake_NCMR",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute MasterControlToDataLake_Media",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_NCMR",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute MasterControlToDataLake_SCAR",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute MasterControlToDataLake_NCMR",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_SCAR",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute MasterControlToDataLake_SCL",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute MasterControlToDataLake_SCAR",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_SCL",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute MasterConro_WFCLOSEDDOCS",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute MasterControlToDataLake_SCL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_WF_CLOSEDDOCS",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "MasterControlToDataLake_WF_INPROCESSDOCS",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute MasterConro_WFCLOSEDDOCS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_WF_INPROCESSDOCS",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "MasterControlToDataLake_SHGCOMPLAINTS",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MasterControlToDataLake_WF_INPROCESSDOCS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_SHGCOMPLAINTS_Loop",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "MasterControlToDataLake_ROCCOMPLAINTS",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MasterControlToDataLake_SHGCOMPLAINTS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_ROCCOMPLAINTS",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "MasterControlToDataLake_BOCDefectTRacking",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MasterControlToDataLake_ROCCOMPLAINTS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_BOCDefectTracking_Loop",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "MasterControlToDatalake_GlobalNCMR",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "MasterControlToDataLake_BOCDefectTRacking",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDatalake_GlobalNCMR",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:35:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

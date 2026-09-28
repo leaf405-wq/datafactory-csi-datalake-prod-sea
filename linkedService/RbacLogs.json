@@ -1,0 +1,11 @@
+{
+	"name": "RbacLogs",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureTableStorage",
+		"typeProperties": {
+			"connectionString": "todo"
+		}
+	}
+}

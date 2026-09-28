@@ -1,0 +1,24 @@
+{
+	"name": "SapCloudForCustomerHierarchyParameterized",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SapCloudForCustomerHierarchy",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SapCloudForCustomerResource",
+		"schema": [],
+		"typeProperties": {
+			"path": {
+				"value": "@dataset().Name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

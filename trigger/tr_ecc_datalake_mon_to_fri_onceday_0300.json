@@ -1,0 +1,48 @@
+{
+	"name": "tr_ecc_datalake_mon_to_fri_onceday_0300",
+	"properties": {
+		"description": "mon to fri once a day AM 03:00",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_DP_VEKKOLFA1",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_DP_VEKKOLFA1",
+					"schedule": "mon_to_fri_onceday_0300",
+					"sync_type": "full",
+					"target_system": "datalake",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-13T07:24:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						3
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

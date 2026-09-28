@@ -1,0 +1,498 @@
+{
+	"name": "Standard_RMS",
+	"properties": {
+		"activities": [
+			{
+				"name": "If Condition",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(pipeline().parameters.DeltaType,'F')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Copy data from oracle to sql_delta",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Set variable StartDate",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "Set variable EndDate",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT * FROM RMSPORTAL.Monitor_Reading_History_XRS WHERE (MONITOR_PROP_NAME = 'ProductVersion' AND GENERATED_AT >= '@{variables('StartDate')}' AND GENERATED_AT <= '@{variables('EndDate')}')\n",
+										"type": "Expression"
+									},
+									"partitionOption": "None",
+									"queryTimeout": "02:00:00"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"preCopyScript": {
+										"value": "TRUNCATE TABLE STAGE.RMS_Monitor_Reading_History_XRS",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "OracleDatabaseParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": ".",
+										"SchemaName": "."
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": {
+											"value": "RMS_Monitor_Reading_History_XRS",
+											"type": "Expression"
+										},
+										"Schema": "Stage"
+									}
+								}
+							]
+						},
+						{
+							"name": "Error Log Copy Activity_delta",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Copy data from oracle to sql_delta",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Copy data from oracle to sql_delta').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-','Oracle table MONITOR_READING_HISTORY_XRS')}'\n;",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "Set variable StartDate",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "StartDate",
+								"value": {
+									"value": "@if(equals(pipeline().parameters.StartDate,'.'),formatDateTime(addDays(utcNow('dd-MMM-yyyy'),-30),'dd-MMM-yyyy'),formatDateTime(pipeline().parameters.StartDate,'dd-MMM-yyyy'))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set variable EndDate",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "EndDate",
+								"value": {
+									"value": "@if(equals(pipeline().parameters.EndDate,'.'),utcNow('dd-MMM-yyyy'),formatDateTime(pipeline().parameters.EndDate,'dd-MMM-yyyy'))",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Copy data from oracle to sql",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Set variable StartDate_FullLoad",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OracleSource",
+									"oracleReaderQuery": {
+										"value": "SELECT * FROM RMSPORTAL.Monitor_Reading_History_XRS WHERE MONITOR_PROP_NAME = 'ProductVersion' AND GENERATED_AT >= '@{variables('StartDate')}'",
+										"type": "Expression"
+									},
+									"partitionOption": "None",
+									"queryTimeout": "02:00:00"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"preCopyScript": {
+										"value": "TRUNCATE TABLE STAGE.RMS_Monitor_Reading_History_XRS",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "OracleDatabaseParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": ".",
+										"SchemaName": "."
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": {
+											"value": "RMS_Monitor_Reading_History_XRS",
+											"type": "Expression"
+										},
+										"Schema": "Stage"
+									}
+								}
+							]
+						},
+						{
+							"name": "Error Log Copy Activity",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Copy data from oracle to sql",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Copy data from oracle to sql').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-','Oracle table MONITOR_READING_HISTORY_XRS')}'\n;",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "Set variable StartDate_FullLoad",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "StartDate",
+								"value": {
+									"value": "@if(equals(pipeline().parameters.StartDate,'.'),'01-Jan-2020',formatDateTime(pipeline().parameters.StartDate,'dd-MMM-yyyy'))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Stored procedure",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "If Condition",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[Stage].[SP_OracleTables_DeleteInsert]",
+					"storedProcedureParameters": {
+						"DeltaType": {
+							"value": {
+								"value": "@pipeline().parameters.DeltaType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Run_ID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TableName": {
+							"value": "RMS_Monitor_Reading_History_XRS",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Error Log If Condition",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "If Condition",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('If Condition').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-','Oracle table MONITOR_READING_HISTORY_XRS')}'\n;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Error Log Stored procedure",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Stored procedure",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Stored procedure').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-','Oracle table MONITOR_READING_HISTORY_XRS')}'\n;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Update Success Log",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Stored procedure",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= 'Successfull.'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-','Oracle table MONITOR_READING_HISTORY_XRS')}'\n;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"parameters": {
+			"DeltaType": {
+				"type": "string"
+			},
+			"StartDate": {
+				"type": "string"
+			},
+			"EndDate": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"StartDate": {
+				"type": "String"
+			},
+			"EndDate": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "RMS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:23:32Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

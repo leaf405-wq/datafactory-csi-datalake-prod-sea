@@ -1,0 +1,283 @@
+{
+	"name": "Standard_AttachmentFolderCollections_Chunked",
+	"properties": {
+		"activities": [
+			{
+				"name": "Watermark_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Select * from [Stage].[LookupTable_Attachments] where Batch = @{pipeline().parameters.Batch} AND PullFlag=1",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Iterate and Copy",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Watermark_Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Watermark_Lookup').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Execute Chunked Full Load",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Standard_Attachment_Chunked_FullLoad_SubPipeline",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"Source_Collection": {
+										"value": "@concat(item().Parent_Object,\n'Collection',\n'?$expand=',\nitem().Source_Collection\n)",
+										"type": "Expression"
+									},
+									"Destination_Table": {
+										"value": "@item().Table_Name",
+										"type": "Expression"
+									},
+									"DeltaColumn": {
+										"value": "@item().Delta_Column",
+										"type": "Expression"
+									},
+									"ChunkSize": {
+										"value": "@pipeline().parameters.ChunkSize",
+										"type": "Expression"
+									},
+									"Mapping": {
+										"value": "@item().Mapping",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Delete Insert Data From Staging to Main Table_FullLoad",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Execute Chunked Full Load",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[Stage].[SP_DeleteInsert_Attachment]",
+								"storedProcedureParameters": {
+									"columname": {
+										"value": {
+											"value": "@item().Delta_Column",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"DeltaType": {
+										"value": {
+											"value": "@pipeline().parameters.DeltaType",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServerLinkedService",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "Error Log For Delete Insert_FullLoad",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Delete Insert Data From Staging to Main Table_FullLoad",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Delete Insert Data From Staging to Main Table_FullLoad').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',item().Source_Collection)}'\n;",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								}
+							}
+						},
+						{
+							"name": "Error Log For Execute Chunked Full Load",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Execute Chunked Full Load",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Execute Chunked Full Load').output.Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',item().Source_Collection)}'\n;",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Error Log For Watermark_Lookup",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Watermark_Lookup",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Watermark_Lookup').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-','AttachmentFolder')}'\n;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"DeltaType": {
+				"type": "string"
+			},
+			"Batch": {
+				"type": "string"
+			},
+			"ChunkSize": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Standard"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:35:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

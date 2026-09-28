@@ -1,0 +1,64 @@
+{
+	"name": "Every_2_Hours_Oppertunity_CustomerOrder",
+	"properties": {
+		"description": "2 Hours Frequency",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_DeltaLoad_Dependent",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "5"
+				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_FullLoad",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "5",
+					"DeltaType": "AND DeltaType = 'F'"
+				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "Delta_Load_Master_Pipeline",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "5"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-07-28T06:59:00",
+				"timeZone": "Eastern Standard Time",
+				"schedule": {
+					"hours": [
+						21,
+						0,
+						3,
+						12,
+						15,
+						18
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

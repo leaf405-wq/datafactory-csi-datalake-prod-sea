@@ -1,0 +1,483 @@
+{
+	"name": "SharepointOnlineList",
+	"properties": {
+		"description": "Communications Complaints",
+		"activities": [
+			{
+				"name": "Sharepoint_Complaints_List",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SharePointOnlineListSource",
+						"httpRequestTimeout": "00:10:00"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "PleaseEnterYourName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Please enter your Name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TelephoneNumberWithAreaCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Telephone Number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerSName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Customer Name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerSSiteName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Customer Site Name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerSCountryId",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Customer Country",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerSTownCity",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Customer TownCity",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerSSiteAddress",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Customer Site Address",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerSPhoneNumberWithAreaCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Customer Phone Number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerSiteEmailAddress",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerSite email Address",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BUSegmentValue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BU Segment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MyCarestreamApplicationValue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MyCarestream Application",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SAPSoldToNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SAP sold to Number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ErrorNumberIfAvailable",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Error number if available",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PleaseProvideTheStepsToReproduceTheErrorIssue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Please provide the steps to reproduce the error issue",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "KNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "K Number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "IsTheFeedbackRelatedToAnExistingOrderValue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Is the feedback related to an existing order",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesOrderNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sales Order Number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSerialNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Product Serial Number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MaterialNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Material Number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DeliveryNoteNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Delivery Note Number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductDescription",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Product Description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LocationInFacility",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Location in Facility",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FeedbackDescription",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Feedback Description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "C4CTicket",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "C4C Ticket",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "C4CTicketValue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "C4C Ticket Value",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MasterControlComplaintNumber",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Master Control Complaint Number",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "MasterControlComplaintNumberValue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Master Control Complaint Number Value",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DefectIncidentTrackerNumber",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Defect Incident Tracker Number",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "DefectIncidentTrackerNumberValue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Defect Incident Tracker Number Value",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ClosureOfEShopMyCarestream",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Closure of eShop MyCarestream",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Modified",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Modified",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "Created",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Created",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedById",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Created By",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ModifiedById",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Modified By",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "StatusValue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ContentType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Item Type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Path",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Path",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SharePointOnlineListDataset",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "Customer_Feedback_Communication",
+							"Schema": "dbo"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SharepointOnlineList"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:23:32Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

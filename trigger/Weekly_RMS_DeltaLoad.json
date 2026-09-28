@@ -1,0 +1,40 @@
+{
+	"name": "Weekly_RMS_DeltaLoad",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_RMS",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"DeltaType": "D",
+					"StartDate": ".",
+					"EndDate": "."
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2022-02-25T10:13:00",
+				"timeZone": "Eastern Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						23
+					],
+					"weekDays": [
+						"Sunday"
+					]
+				}
+			}
+		}
+	}
+}

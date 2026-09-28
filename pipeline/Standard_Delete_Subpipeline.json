@@ -1,0 +1,48 @@
+{
+	"name": "Standard_Delete_Subpipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "CallDeleteSP",
+				"description": "Call C4C_DeleteProcess",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[C4C_DeleteProcess]"
+				},
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			},
+			"CollectionName": {
+				"type": "string"
+			},
+			"JobName": {
+				"type": "string"
+			},
+			"CallingModule": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Standard"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:22:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

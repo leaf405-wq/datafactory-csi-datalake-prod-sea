@@ -1,0 +1,108 @@
+{
+	"name": "SqlServerParameterizedDataset1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlServerLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Table_Name": {
+				"type": "string"
+			},
+			"Schema": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "USER_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "COMPLETION_DATE",
+				"type": "varchar"
+			},
+			{
+				"name": "INFOCARD_REVISION",
+				"type": "varchar"
+			},
+			{
+				"name": "STEP_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "TYPE_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "DUE_DATE",
+				"type": "varchar"
+			},
+			{
+				"name": "SUPERVISOR",
+				"type": "varchar"
+			},
+			{
+				"name": "STEP_STATUS",
+				"type": "varchar"
+			},
+			{
+				"name": "FIRST_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "TASK_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "LAUNCH_DATE",
+				"type": "varchar"
+			},
+			{
+				"name": "APPROVAL_USER_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "STEP_ORDER",
+				"type": "varchar"
+			},
+			{
+				"name": "INFOCARD_NUMBER",
+				"type": "varchar"
+			},
+			{
+				"name": "LAST_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "ROW_NUM1",
+				"type": "varchar"
+			},
+			{
+				"name": "INFOCARD_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "NOTIFICATION_DATE",
+				"type": "varchar"
+			},
+			{
+				"name": "WORKFLOW_NAME",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().Schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().Table_Name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

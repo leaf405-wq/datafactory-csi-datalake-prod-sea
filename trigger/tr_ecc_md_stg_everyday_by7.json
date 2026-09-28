@@ -1,0 +1,40 @@
+{
+	"name": "tr_ecc_md_stg_everyday_by7",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "ECC_Ingest_Md_Stg_Full",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods",
+					"schedule": "everyday_by7_16_19_23",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-05-13T07:39:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						7
+					]
+				}
+			}
+		}
+	}
+}

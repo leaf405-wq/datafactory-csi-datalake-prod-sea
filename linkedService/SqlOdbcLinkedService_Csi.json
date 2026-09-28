@@ -1,0 +1,28 @@
+{
+	"name": "SqlOdbcLinkedService_Csi",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "sql-csi-idam-prod-sea.database.windows.net",
+			"database": "sqldb-csi-idam-prod-sea",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "CSIIDAMEXTERNALUSER",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "rbac-sql-odbc-password"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

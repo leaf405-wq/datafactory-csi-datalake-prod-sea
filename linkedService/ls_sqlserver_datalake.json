@@ -1,0 +1,33 @@
+{
+	"name": "ls_sqlserver_datalake",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"db_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "10.121.20.4",
+			"database": "@{linkedService().db_name}",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "MSADF",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-datalake-sqlserver-password"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

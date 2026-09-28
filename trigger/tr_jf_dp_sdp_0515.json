@@ -1,0 +1,40 @@
+{
+	"name": "tr_jf_dp_sdp_0515",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_DP_SDP_noschedule",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_DP_SDP",
+					"schedule": "noschedule",
+					"sync_type": "full",
+					"target_system": "datalake",
+					"src_system": "Extractor(ECC)"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-08-18T14:27:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						15
+					],
+					"hours": [
+						5
+					]
+				}
+			}
+		}
+	}
+}

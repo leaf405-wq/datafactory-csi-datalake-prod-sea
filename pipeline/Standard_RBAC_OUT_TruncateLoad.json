@@ -1,0 +1,172 @@
+{
+	"name": "Standard_RBAC_OUT_TruncateLoad",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy From SQL ODBC DealerPermission_other To Datalake",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OdbcSource",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": "DELETE FROM [dbo].[cHUBDealerPermissions_RBAC]",
+						"writeBehavior": "insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SqlOdbcParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "\"csh_ext\".\"out_cHUBDealerPermissions\""
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "cHUBDealerPermissions_RBAC",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy From SQL ODBC ProductCountry To Datalake",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OdbcSource",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": "DELETE FROM [dbo].[cHUBProductCountry_RBAC]",
+						"writeBehavior": "insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SqlOdbcParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "\"csh_ext\".\"out_cHUBProductCountry\""
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "cHUBProductCountry_RBAC",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy From SQL ODBC idamUser To Datalake",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OdbcSource",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": "DELETE FROM [dbo].[cHUBidamUsers_RBAC]",
+						"writeBehavior": "insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SqlOdbcParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "\"csh_ext\".\"out_idamUsers\""
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "cHUBidamUsers_RBAC",
+							"Schema": "dbo"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "MasterControl/RBAC/pipeline_archived"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-11T03:41:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

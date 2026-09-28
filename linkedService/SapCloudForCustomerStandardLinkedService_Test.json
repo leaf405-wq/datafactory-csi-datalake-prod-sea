@@ -1,0 +1,20 @@
+{
+	"name": "SapCloudForCustomerStandardLinkedService_Test",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SapCloudForCustomer",
+		"typeProperties": {
+			"url": "https://my370507.crm.ondemand.com/sap/c4c/odata/v1/c4codataapi/",
+			"username": "MSADF",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-c4c-etl-password"
+			}
+		}
+	}
+}

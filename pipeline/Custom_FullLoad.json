@@ -1,0 +1,472 @@
+{
+	"name": "Custom_FullLoad",
+	"properties": {
+		"activities": [
+			{
+				"name": "Watermark_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT * FROM [Stage].[Lookup_Table] WHERE PullFlag = 1 AND Api_Type = 'Custom'  AND Batch='@{pipeline().parameters.Batch}' @{pipeline().parameters.DeltaType}",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEachFullLoad",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Watermark_Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Watermark_Lookup').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "C4CToAzureCopyFullload",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Update Job Log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SapCloudForCustomerSource",
+									"query": {
+										"value": "@replace(item().Query,'&','')",
+										"type": "Expression"
+									},
+									"httpRequestTimeout": "05:00:00"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"writeBatchTimeout": "10:00:00",
+									"preCopyScript": {
+										"value": "DROP TABLE IF EXISTS @{concat('Stage.',item().Destination_TableName)}",
+										"type": "Expression"
+									},
+									"tableOption": "autoCreate"
+								},
+								"enableStaging": false,
+								"parallelCopies": 5
+							},
+							"inputs": [
+								{
+									"referenceName": "SapC4cParameterizedCustomDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Name": {
+											"value": "@item().Source_Collection",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": "@item().Destination_TableName",
+										"Schema": "Stage"
+									}
+								}
+							]
+						},
+						{
+							"name": "SP_DeleteInsert",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "SP_SchemaDrift",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[Stage].[SP_DeleteInsert]",
+								"storedProcedureParameters": {
+									"columname": {
+										"value": {
+											"value": "@item().Delta_Column",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Run_ID": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',\nitem().Source_Collection)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "@item().Destination_TableName",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServerLinkedService",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "SP_SchemaDrift",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "C4CToAzureCopyFullload",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[Stage].[SP_SchemaDrift]",
+								"storedProcedureParameters": {
+									"job_ID": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',\nitem().Source_Collection)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Src_Table_Name": {
+										"value": {
+											"value": "@item().Destination_TableName",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServerLinkedService",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "Update Job Log",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "INSERT INTO dbo.C4C__JobLog (\n    JobName,\n    JobDate,\n    JobUser,\n    JobStatus,\n    CallingModule,\n    JobLevel\n) OUTPUT INSERTED.JobStatus Values (\n    '@{pipeline().Pipeline}',\n    '@{FormatDateTime(pipeline().TriggerTime,'yyyy-MM-dd HH:MM:ss.FFF')}',\n    'MSADF',\n    'Running',\n    '@{concat(pipeline().RunId,'-',item().Source_Collection)}',\n    '4'\n)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "Error Log Schema Drift",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "SP_SchemaDrift",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('SP_SchemaDrift').Error.Message,'''','')}'\nOUTPUT 1\nWHERE \nCallingModule='@{concat(pipeline().RunId,'-',item().Source_Collection)}';",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "Error Log Delete Insert",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "SP_DeleteInsert",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('SP_DeleteInsert').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',item().Source_Collection)}'\n;",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "Unit Test and Update Log",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "SP_DeleteInsert",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Unit_Test",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": false,
+								"parameters": {
+									"Table_Name": {
+										"value": "@item().Destination_TableName",
+										"type": "Expression"
+									},
+									"Pipeline_ID": {
+										"value": "@{concat(pipeline().RunId,'-',item().Source_Collection)}",
+										"type": "Expression"
+									},
+									"Pipeline_Name": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"Job_Date": {
+										"value": "@pipeline().TriggerTime",
+										"type": "Expression"
+									},
+									"Collection_Name": {
+										"value": "@item().Source_Collection",
+										"type": "Expression"
+									},
+									"API_Type": "Custom"
+								}
+							}
+						},
+						{
+							"name": "Error Log Unit Test",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Unit Test and Update Log",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Unit Test and Update Log').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',item().Source_Collection)}'\n;",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								}
+							}
+						},
+						{
+							"name": "Error Log Copy Activity",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "C4CToAzureCopyFullload",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('C4CToAzureCopyFullload').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',item().Source_Collection)}'\n;",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						}
+					]
+				}
+			}
+		],
+		"concurrency": 5,
+		"parameters": {
+			"Batch": {
+				"type": "string"
+			},
+			"DeltaType": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Custom"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:35:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

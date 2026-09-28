@@ -1,0 +1,22 @@
+{
+	"name": "AnalyticsRestLinkedService",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://analytics.dev.azure.com/",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Basic",
+			"userName": "shankar.chintada@carestream.com",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "CSHDevopsKey"
+			}
+		}
+	}
+}

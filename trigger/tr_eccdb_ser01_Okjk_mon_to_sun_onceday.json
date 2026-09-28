@@ -1,0 +1,49 @@
+{
+	"name": "tr_eccdb_ser01_Okjk_mon_to_sun_onceday",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "SER01_OKJK_Ingest_GMAT",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_SER01_OKJK",
+					"schedule": "mon_to_sun_onceday",
+					"sync_type": "insert",
+					"target_system": "gmat",
+					"src_system": "eccdb"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-13T06:05:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						5
+					],
+					"hours": [
+						0
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday",
+						"Saturday",
+						"Sunday"
+					]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,26 @@
+{
+	"name": "LS_REST_SAPECC",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://vhhkhp90ai01. sap.carestream-int.com:44300",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Basic",
+			"userName": "ETLBODSDP",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-ecc-etl-password"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

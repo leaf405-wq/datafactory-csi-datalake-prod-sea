@@ -1,0 +1,49 @@
+{
+	"name": "tr_eccdb_gmat_mon_to_sun_onceday_delta",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "ECCDB_Ingest_GMAT_Delta",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods",
+					"schedule": "mon_to_sun_onceday",
+					"sync_type": "insert",
+					"target_system": "gmat",
+					"src_system": "eccdb"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-13T08:19:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						0
+					],
+					"weekDays": [
+						"Monday",
+						"Sunday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday",
+						"Saturday"
+					]
+				}
+			}
+		}
+	}
+}

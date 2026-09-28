@@ -1,0 +1,24 @@
+{
+	"name": "AzureTableParameterizedDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureTableStorageLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureTable",
+		"schema": [],
+		"typeProperties": {
+			"tableName": {
+				"value": "@dataset().TableName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

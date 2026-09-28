@@ -1,0 +1,26 @@
+{
+	"name": "All_Collections",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2020-12-31T09:00:00",
+				"endTime": "2020-12-31T20:00:00",
+				"timeZone": "India Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						9
+					]
+				}
+			}
+		}
+	}
+}

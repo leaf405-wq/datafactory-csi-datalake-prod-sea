@@ -1,0 +1,378 @@
+{
+	"name": "Standard_Attachment_Chunked_FullLoad_SubPipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Until1",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "IncrementSkip_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(\n    equals(\n        activity('C4CToAzureCopyFullload').output.rowsRead,0\n    ),\n    equals(\n        length(activity('C4CToAzureCopyFullload').output.errors),\n        0\n    )\n)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "C4CToAzureCopyFullload",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"paginationRules": {
+										"AbsoluteUrl": {
+											"value": "$.d.__next",
+											"type": "Expression"
+										},
+										"supportRFC5988": "true"
+									}
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"writeBatchTimeout": "10:00:00"
+								},
+								"enableStaging": false,
+								"parallelCopies": 5,
+								"translator": {
+									"value": "@json(pipeline().parameters.Mapping)",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SapC4CStandardParameterizedRestDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"SourceCollection": {
+											"value": "@{\n    concat(\n        pipeline().parameters.Source_Collection,\n        '&$skip=',\n        variables('Skip'),\n        '&$top=',\n        pipeline().parameters.ChunkSize,\n        '&$format=json'\n    )\n}",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": {
+											"value": "@pipeline().parameters.Destination_Table",
+											"type": "Expression"
+										},
+										"Schema": "Dmp"
+									}
+								}
+							]
+						},
+						{
+							"name": "IncrementTempForSkip",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "C4CToAzureCopyFullload",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Temp",
+								"value": {
+									"value": "@string(\n    add(\n        int(variables('Skip')),\n        int(pipeline().parameters.ChunkSize)\n    )\n)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "IncrementSkip",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "IncrementTempForSkip",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Skip",
+								"value": {
+									"value": "@variables('Temp')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Update Log",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "C4CToAzureCopyFullload",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "INSERT INTO dmp.AttchmentError values ('@{\n    concat(\n        pipeline().parameters.Source_Collection,\n        '&$skip=',\n        variables('Skip'),\n        '&$top=',\n        pipeline().parameters.ChunkSize,\n        '&$format=json'\n    )\n}' , 'Failed','@{REPLACE(activity('C4CToAzureCopyFullload').Error.Message,'''','')}','@{utcNow()}');\n\nSELECT * FROM dmp.AttchmentError",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						},
+						{
+							"name": "IncrementTempForSkip_copy2",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Update Log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Temp",
+								"value": {
+									"value": "@string(\n    add(\n        int(variables('Skip')),\n        int(pipeline().parameters.ChunkSize)\n    )\n)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "IncrementSkip_copy2",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "IncrementTempForSkip_copy2",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Skip",
+								"value": {
+									"value": "@variables('Temp')",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "7.00:00:00"
+				}
+			},
+			{
+				"name": "TruncateTableAndInitialLoad",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"AbsoluteUrl": {
+								"value": "$.d.__next",
+								"type": "Expression"
+							},
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBatchTimeout": "10:00:00",
+						"preCopyScript": {
+							"value": "@{concat('Truncate table Dmp.',pipeline().parameters.Destination_Table)}",
+							"type": "Expression"
+						}
+					},
+					"enableStaging": false,
+					"parallelCopies": 5,
+					"translator": {
+						"value": "@json(pipeline().parameters.Mapping)",
+						"type": "Expression"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SapC4CStandardParameterizedRestDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"SourceCollection": {
+								"value": "@{\n    concat(\n        pipeline().parameters.Source_Collection,\n        '&$skip=',\n        variables('Skip'),\n        '&$top=',\n        pipeline().parameters.ChunkSize,\n        '&$format=json'\n    )\n}",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": {
+								"value": "@pipeline().parameters.Destination_Table",
+								"type": "Expression"
+							},
+							"Schema": "Dmp"
+						}
+					}
+				]
+			},
+			{
+				"name": "IncrementTempForSkip_copy1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "TruncateTableAndInitialLoad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Temp",
+					"value": {
+						"value": "@string(\n    add(\n        int(variables('Skip')),\n        int(pipeline().parameters.ChunkSize)\n    )\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "IncrementSkip_copy1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "IncrementTempForSkip_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Skip",
+					"value": {
+						"value": "@variables('Temp')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"concurrency": 5,
+		"parameters": {
+			"Source_Collection": {
+				"type": "string"
+			},
+			"Destination_Table": {
+				"type": "string"
+			},
+			"DeltaColumn": {
+				"type": "string"
+			},
+			"ChunkSize": {
+				"type": "string",
+				"defaultValue": "1000"
+			},
+			"Mapping": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"Skip": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"Temp": {
+				"type": "String",
+				"defaultValue": "0"
+			}
+		},
+		"folder": {
+			"name": "Standard"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:24:50Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

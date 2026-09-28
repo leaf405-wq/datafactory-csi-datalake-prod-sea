@@ -1,0 +1,40 @@
+{
+	"name": "ds_sqlserver_gmat",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sqlserver_gmat",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"db_name": {
+					"value": "@dataset().db_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"db_name": {
+				"type": "string"
+			},
+			"tb_name": {
+				"type": "string"
+			},
+			"schema_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schema_name",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tb_name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

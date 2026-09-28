@@ -1,0 +1,27 @@
+{
+	"name": "ls_saptable_bw",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SapTable",
+		"typeProperties": {
+			"clientId": "23",
+			"sncMode": false,
+			"userName": "ETLBODS",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-sap-bw-password"
+			},
+			"server": "10.114.146.63",
+			"systemNumber": "00"
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

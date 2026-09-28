@@ -1,0 +1,33 @@
+{
+	"name": "AbortedForms",
+	"properties": {
+		"description": "Daily run of MC Aborted Forms",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "MasterControl_AbortedForms",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2025-02-12T09:30:00",
+				"timeZone": "Eastern Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						9
+					]
+				}
+			}
+		}
+	}
+}

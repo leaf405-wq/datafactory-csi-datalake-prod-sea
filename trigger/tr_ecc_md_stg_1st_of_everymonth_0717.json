@@ -1,0 +1,44 @@
+{
+	"name": "tr_ecc_md_stg_1st_of_everymonth_0717",
+	"properties": {
+		"description": "1st of every month AM 07:17",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_PRC_S812",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_PRC_S812",
+					"schedule": "1st_of_everymonth_0717",
+					"sync_type": "full",
+					"target_system": "cs-cimdb",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Month",
+				"interval": 1,
+				"startTime": "2026-07-01T04:06:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						17
+					],
+					"hours": [
+						7
+					],
+					"monthDays": [
+						1
+					]
+				}
+			}
+		}
+	}
+}

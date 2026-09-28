@@ -1,0 +1,134 @@
+{
+	"name": "Child_Process_ByMonth_Full3YearMonth",
+	"properties": {
+		"activities": [
+			{
+				"name": "var_year",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_year",
+					"value": {
+						"value": "@string(pipeline().parameters.var_year)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "var_month",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_month",
+					"value": [
+						"01",
+						"02",
+						"03",
+						"04",
+						"05",
+						"06",
+						"07",
+						"08",
+						"09",
+						"10",
+						"11",
+						"12"
+					]
+				}
+			},
+			{
+				"name": "ForEach_year_period",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "var_year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "var_month",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_month')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Execute_year_period",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "SLT_Ingest_Datalake_Delta_ByMonth_Full3YearMonth",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "slt",
+									"schedule": "biweekly",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": "full3yearmonth",
+									"var_year": {
+										"value": "@variables('var_year')",
+										"type": "Expression"
+									},
+									"var_month": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"var_year": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"var_year": {
+				"type": "String"
+			},
+			"var_month": {
+				"type": "Array"
+			},
+			"var_list_year": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "SLT_INGEST/SLT_INGEST_DELTA/SLT_Ingest_Delta"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-21T05:40:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

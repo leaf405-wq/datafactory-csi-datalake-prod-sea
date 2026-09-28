@@ -1,0 +1,302 @@
+{
+	"name": "ADO_Migration_Master_copy1",
+	"properties": {
+		"activities": [
+			{
+				"name": "ADO Lookup Project List",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"query": "$Select=ProjectName&$orderby=ProjectName",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"dataset": {
+						"referenceName": "ADOProjectsDataset",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach Project",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ADO Lookup Project List",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('ADO Lookup Project List').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Fetch Count",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Set Filter Query",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"url": {
+									"value": "@concat('https://analytics.dev.azure.com/csi-devops/',item().ProjectName,'/_odata/v4.0-preview/WorkItems?$count=true&$apply=filter(ChangedDate ge ',variables('Delta_Date'),'Z)/aggregate($count as count)')",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "Basic",
+									"username": "ruchir.jain@carestream.com",
+									"password": {
+										"type": "AzureKeyVaultSecret",
+										"store": {
+											"referenceName": "AzureKeyVaultLinkedService",
+											"type": "LinkedServiceReference"
+										},
+										"secretName": "CSHDevopsKey"
+									}
+								}
+							}
+						},
+						{
+							"name": "Set WorkItems Count",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Fetch Count",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Count",
+								"value": {
+									"value": "@string(if(empty(activity('Fetch Count').output.value),0,activity('Fetch Count').output.value[0].count))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set time for Delta",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Delta_Date",
+								"value": {
+									"value": "@split(subtractFromTime(utcNow(),2,'Day'),'T')[0]",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set Filter Query",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set time for Delta",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Filter_Query",
+								"value": {
+									"value": "@concat('$filter=ChangedDate ge ',variables('Delta_Date'),'Z')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Reset Count",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "If Condition",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Count",
+								"value": {
+									"value": "@string(0)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "If Condition",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Set WorkItems Count",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(int(variables('Count')),0)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Execute Delta Load",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"policy": {
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "ADO_Delta_Load",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"ProjectName": {
+													"value": "@item().ProjectName",
+													"type": "Expression"
+												},
+												"Count": {
+													"value": "@int(variables('Count'))",
+													"type": "Expression"
+												},
+												"Filter_Query": {
+													"value": "@variables('Filter_Query')",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "USP_Load_Data",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ForEach Project",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[uspIncrementalLoad]"
+				},
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"variables": {
+			"Count": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"GreaterValue": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"SmallerValue": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"SkipCount": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"SkipToken": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"AddCount": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"SubCount": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"Delta_Date": {
+				"type": "String"
+			},
+			"Filter_Query": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "SWO_Testing"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-07T03:41:48Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

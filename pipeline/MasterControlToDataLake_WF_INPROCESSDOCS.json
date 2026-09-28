@@ -1,0 +1,2207 @@
+{
+	"name": "MasterControlToDataLake_WF_INPROCESSDOCS",
+	"properties": {
+		"activities": [
+			{
+				"name": "Script1",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Stored procedure1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "truncate table dbo.[MasterControl_WF_INPROCESSDOCS_Delta] "
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Web1",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "@pipeline().globalParameters.mastercontrol_url",
+						"type": "Expression"
+					},
+					"body": {
+						"serviceName": "ConnectionService",
+						"methodName": "connectWithApiKey",
+						"arguments": {
+							"apiKey": "8be95316-3f36-4dfa-9e4b-5756de9d4b34",
+							"logoutCurrentWebConnection": false
+						}
+					}
+				}
+			},
+			{
+				"name": "Stored procedure1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "WF_INPROCESSDOCS_ActionItems",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[sp_MasterControl_WF_INPROCESSDOCS]"
+				},
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "WF_INPROCESSDOCS_GlobalNCMR",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "WF_INPROCESSDOCS_CMRlong",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"api_inprocess_docs_forms\",','\"filterParameters\": [{\"key\": \"workflow_name\",\"value\": \"NCMR\"},','{\"key\": \"row_start\",\"value\": \"0\"},{\"key\": \"row_end\",\"value\": \"5000\"},','{\"key\": \"start_date\",\"value\": \"',formatDateTime(adddays(startOfDay(utcnow()),-25),'yyyy-MM-dd'),'\"},{\"key\": \"end_date\",\"value\": \"\"},{\"key\": \"type\",\"value\": \"Process\"}]','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['USER_NAME']"
+								},
+								"sink": {
+									"name": "USER_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['COMPLETION_DATE']"
+								},
+								"sink": {
+									"name": "COMPLETION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_NAME']"
+								},
+								"sink": {
+									"name": "STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TYPE_ID']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DUE_DATE']"
+								},
+								"sink": {
+									"name": "DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['SUPERVISOR']"
+								},
+								"sink": {
+									"name": "SUPERVISOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_STATUS']"
+								},
+								"sink": {
+									"name": "STEP_STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIRST_NAME']"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TASK_NAME']"
+								},
+								"sink": {
+									"name": "TASK_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAUNCH_DATE']"
+								},
+								"sink": {
+									"name": "LAUNCH_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['APPROVAL_USER_ID']"
+								},
+								"sink": {
+									"name": "APPROVAL_USER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_ORDER']"
+								},
+								"sink": {
+									"name": "STEP_ORDER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAST_NAME']"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ID']"
+								},
+								"sink": {
+									"name": "INFOCARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NOTIFICATION_DATE']"
+								},
+								"sink": {
+									"name": "NOTIFICATION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['WORKFLOW_NAME']"
+								},
+								"sink": {
+									"name": "WORKFLOW_NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_WF_INPROCESSDOCS_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "WF_INPROCESSDOCS_CAPA",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "WF_INPROCESSDOCS_GlobalNCMR",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"api_inprocess_docs_forms\",','\"filterParameters\": [{\"key\": \"workflow_name\",\"value\": \"CAPA\"},','{\"key\": \"row_start\",\"value\": \"0\"},{\"key\": \"row_end\",\"value\": \"5000\"},','{\"key\": \"start_date\",\"value\": \"',formatDateTime(adddays(startOfDay(utcnow()),-25),'yyyy-MM-dd'),'\"},{\"key\": \"end_date\",\"value\": \"\"},{\"key\": \"type\",\"value\": \"Process\"}]','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['USER_NAME']"
+								},
+								"sink": {
+									"name": "USER_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['COMPLETION_DATE']"
+								},
+								"sink": {
+									"name": "COMPLETION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_NAME']"
+								},
+								"sink": {
+									"name": "STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TYPE_ID']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DUE_DATE']"
+								},
+								"sink": {
+									"name": "DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['SUPERVISOR']"
+								},
+								"sink": {
+									"name": "SUPERVISOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_STATUS']"
+								},
+								"sink": {
+									"name": "STEP_STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIRST_NAME']"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TASK_NAME']"
+								},
+								"sink": {
+									"name": "TASK_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAUNCH_DATE']"
+								},
+								"sink": {
+									"name": "LAUNCH_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['APPROVAL_USER_ID']"
+								},
+								"sink": {
+									"name": "APPROVAL_USER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_ORDER']"
+								},
+								"sink": {
+									"name": "STEP_ORDER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAST_NAME']"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ID']"
+								},
+								"sink": {
+									"name": "INFOCARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NOTIFICATION_DATE']"
+								},
+								"sink": {
+									"name": "NOTIFICATION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['WORKFLOW_NAME']"
+								},
+								"sink": {
+									"name": "WORKFLOW_NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_WF_INPROCESSDOCS_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "WF_INPROCESSDOCS_SCAR",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "WF_INPROCESSDOCS_CAPA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"api_inprocess_docs_forms\",','\"filterParameters\": [{\"key\": \"workflow_name\",\"value\": \"SCAR\"},','{\"key\": \"row_start\",\"value\": \"0\"},{\"key\": \"row_end\",\"value\": \"5000\"},','{\"key\": \"start_date\",\"value\": \"',formatDateTime(adddays(startOfDay(utcnow()),-25),'yyyy-MM-dd'),'\"},{\"key\": \"end_date\",\"value\": \"\"},{\"key\": \"type\",\"value\": \"Process\"}]','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['USER_NAME']"
+								},
+								"sink": {
+									"name": "USER_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['COMPLETION_DATE']"
+								},
+								"sink": {
+									"name": "COMPLETION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_NAME']"
+								},
+								"sink": {
+									"name": "STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TYPE_ID']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DUE_DATE']"
+								},
+								"sink": {
+									"name": "DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['SUPERVISOR']"
+								},
+								"sink": {
+									"name": "SUPERVISOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_STATUS']"
+								},
+								"sink": {
+									"name": "STEP_STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIRST_NAME']"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TASK_NAME']"
+								},
+								"sink": {
+									"name": "TASK_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAUNCH_DATE']"
+								},
+								"sink": {
+									"name": "LAUNCH_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['APPROVAL_USER_ID']"
+								},
+								"sink": {
+									"name": "APPROVAL_USER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_ORDER']"
+								},
+								"sink": {
+									"name": "STEP_ORDER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAST_NAME']"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ID']"
+								},
+								"sink": {
+									"name": "INFOCARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NOTIFICATION_DATE']"
+								},
+								"sink": {
+									"name": "NOTIFICATION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['WORKFLOW_NAME']"
+								},
+								"sink": {
+									"name": "WORKFLOW_NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_WF_INPROCESSDOCS_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "WF_INPROCESSDOCS_MARA",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "WF_INPROCESSDOCS_SCAR",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"api_inprocess_docs_forms\",','\"filterParameters\": [{\"key\": \"workflow_name\",\"value\": \"MARA\"},','{\"key\": \"row_start\",\"value\": \"0\"},{\"key\": \"row_end\",\"value\": \"5000\"},','{\"key\": \"start_date\",\"value\": \"',formatDateTime(adddays(startOfDay(utcnow()),-25),'yyyy-MM-dd'),'\"},{\"key\": \"end_date\",\"value\": \"\"},{\"key\": \"type\",\"value\": \"Process\"}]','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['USER_NAME']"
+								},
+								"sink": {
+									"name": "USER_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['COMPLETION_DATE']"
+								},
+								"sink": {
+									"name": "COMPLETION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_NAME']"
+								},
+								"sink": {
+									"name": "STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TYPE_ID']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DUE_DATE']"
+								},
+								"sink": {
+									"name": "DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['SUPERVISOR']"
+								},
+								"sink": {
+									"name": "SUPERVISOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_STATUS']"
+								},
+								"sink": {
+									"name": "STEP_STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIRST_NAME']"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TASK_NAME']"
+								},
+								"sink": {
+									"name": "TASK_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAUNCH_DATE']"
+								},
+								"sink": {
+									"name": "LAUNCH_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['APPROVAL_USER_ID']"
+								},
+								"sink": {
+									"name": "APPROVAL_USER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_ORDER']"
+								},
+								"sink": {
+									"name": "STEP_ORDER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAST_NAME']"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ID']"
+								},
+								"sink": {
+									"name": "INFOCARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NOTIFICATION_DATE']"
+								},
+								"sink": {
+									"name": "NOTIFICATION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['WORKFLOW_NAME']"
+								},
+								"sink": {
+									"name": "WORKFLOW_NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_WF_INPROCESSDOCS_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "WF_INPROCESSDOCS_Investigation",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "WF_INPROCESSDOCS_MARA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"api_inprocess_docs_forms\",','\"filterParameters\": [{\"key\": \"workflow_name\",\"value\": \"Investigation\"},','{\"key\": \"row_start\",\"value\": \"0\"},{\"key\": \"row_end\",\"value\": \"5000\"},','{\"key\": \"start_date\",\"value\": \"',formatDateTime(adddays(startOfDay(utcnow()),-25),'yyyy-MM-dd'),'\"},{\"key\": \"end_date\",\"value\": \"\"},{\"key\": \"type\",\"value\": \"Process\"}]','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['USER_NAME']"
+								},
+								"sink": {
+									"name": "USER_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['COMPLETION_DATE']"
+								},
+								"sink": {
+									"name": "COMPLETION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_NAME']"
+								},
+								"sink": {
+									"name": "STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TYPE_ID']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DUE_DATE']"
+								},
+								"sink": {
+									"name": "DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['SUPERVISOR']"
+								},
+								"sink": {
+									"name": "SUPERVISOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_STATUS']"
+								},
+								"sink": {
+									"name": "STEP_STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIRST_NAME']"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TASK_NAME']"
+								},
+								"sink": {
+									"name": "TASK_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAUNCH_DATE']"
+								},
+								"sink": {
+									"name": "LAUNCH_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['APPROVAL_USER_ID']"
+								},
+								"sink": {
+									"name": "APPROVAL_USER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_ORDER']"
+								},
+								"sink": {
+									"name": "STEP_ORDER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAST_NAME']"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ID']"
+								},
+								"sink": {
+									"name": "INFOCARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NOTIFICATION_DATE']"
+								},
+								"sink": {
+									"name": "NOTIFICATION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['WORKFLOW_NAME']"
+								},
+								"sink": {
+									"name": "WORKFLOW_NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_WF_INPROCESSDOCS_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "WF_INPROCESSDOCS_ActionItems",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "WF_INPROCESSDOCS_Investigation",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"api_inprocess_docs_forms\",','\"filterParameters\": [{\"key\": \"workflow_name\",\"value\": \"Action Item FBS\"},','{\"key\": \"row_start\",\"value\": \"0\"},{\"key\": \"row_end\",\"value\": \"5000\"},','{\"key\": \"start_date\",\"value\": \"',formatDateTime(adddays(startOfDay(utcnow()),-25),'yyyy-MM-dd'),'\"},{\"key\": \"end_date\",\"value\": \"\"},{\"key\": \"type\",\"value\": \"Process\"}]','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['USER_NAME']"
+								},
+								"sink": {
+									"name": "USER_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['COMPLETION_DATE']"
+								},
+								"sink": {
+									"name": "COMPLETION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_NAME']"
+								},
+								"sink": {
+									"name": "STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TYPE_ID']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DUE_DATE']"
+								},
+								"sink": {
+									"name": "DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['SUPERVISOR']"
+								},
+								"sink": {
+									"name": "SUPERVISOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_STATUS']"
+								},
+								"sink": {
+									"name": "STEP_STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIRST_NAME']"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TASK_NAME']"
+								},
+								"sink": {
+									"name": "TASK_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAUNCH_DATE']"
+								},
+								"sink": {
+									"name": "LAUNCH_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['APPROVAL_USER_ID']"
+								},
+								"sink": {
+									"name": "APPROVAL_USER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_ORDER']"
+								},
+								"sink": {
+									"name": "STEP_ORDER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAST_NAME']"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ID']"
+								},
+								"sink": {
+									"name": "INFOCARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NOTIFICATION_DATE']"
+								},
+								"sink": {
+									"name": "NOTIFICATION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['WORKFLOW_NAME']"
+								},
+								"sink": {
+									"name": "WORKFLOW_NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_WF_INPROCESSDOCS_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "WF_INPROCESSDOCS_CMRshort",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "WF_INPROCESSDOCS_FBS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"api_inprocess_docs_forms\",','\"filterParameters\": [{\"key\": \"workflow_name\",\"value\": \"CMR Short\"},','{\"key\": \"row_start\",\"value\": \"0\"},{\"key\": \"row_end\",\"value\": \"5000\"},','{\"key\": \"start_date\",\"value\": \"',formatDateTime(adddays(startOfDay(utcnow()),-25),'yyyy-MM-dd'),'\"},{\"key\": \"end_date\",\"value\": \"\"},{\"key\": \"type\",\"value\": \"Process\"}]','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['USER_NAME']"
+								},
+								"sink": {
+									"name": "USER_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['COMPLETION_DATE']"
+								},
+								"sink": {
+									"name": "COMPLETION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_NAME']"
+								},
+								"sink": {
+									"name": "STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TYPE_ID']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DUE_DATE']"
+								},
+								"sink": {
+									"name": "DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['SUPERVISOR']"
+								},
+								"sink": {
+									"name": "SUPERVISOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_STATUS']"
+								},
+								"sink": {
+									"name": "STEP_STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIRST_NAME']"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TASK_NAME']"
+								},
+								"sink": {
+									"name": "TASK_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAUNCH_DATE']"
+								},
+								"sink": {
+									"name": "LAUNCH_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['APPROVAL_USER_ID']"
+								},
+								"sink": {
+									"name": "APPROVAL_USER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_ORDER']"
+								},
+								"sink": {
+									"name": "STEP_ORDER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAST_NAME']"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ID']"
+								},
+								"sink": {
+									"name": "INFOCARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NOTIFICATION_DATE']"
+								},
+								"sink": {
+									"name": "NOTIFICATION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['WORKFLOW_NAME']"
+								},
+								"sink": {
+									"name": "WORKFLOW_NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_WF_INPROCESSDOCS_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "WF_INPROCESSDOCS_FBS",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Web1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"api_inprocess_docs_forms\",','\"filterParameters\": [{\"key\": \"workflow_name\",\"value\": \"Customer Complaint FBS\"},','{\"key\": \"row_start\",\"value\": \"0\"},{\"key\": \"row_end\",\"value\": \"5000\"},','{\"key\": \"start_date\",\"value\": \"',formatDateTime(adddays(startOfDay(utcnow()),-25),'yyyy-MM-dd'),'\"},{\"key\": \"end_date\",\"value\": \"\"},{\"key\": \"type\",\"value\": \"Process\"}]','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['USER_NAME']"
+								},
+								"sink": {
+									"name": "USER_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['COMPLETION_DATE']"
+								},
+								"sink": {
+									"name": "COMPLETION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_NAME']"
+								},
+								"sink": {
+									"name": "STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TYPE_ID']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DUE_DATE']"
+								},
+								"sink": {
+									"name": "DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['SUPERVISOR']"
+								},
+								"sink": {
+									"name": "SUPERVISOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_STATUS']"
+								},
+								"sink": {
+									"name": "STEP_STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIRST_NAME']"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TASK_NAME']"
+								},
+								"sink": {
+									"name": "TASK_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAUNCH_DATE']"
+								},
+								"sink": {
+									"name": "LAUNCH_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['APPROVAL_USER_ID']"
+								},
+								"sink": {
+									"name": "APPROVAL_USER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_ORDER']"
+								},
+								"sink": {
+									"name": "STEP_ORDER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAST_NAME']"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ID']"
+								},
+								"sink": {
+									"name": "INFOCARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NOTIFICATION_DATE']"
+								},
+								"sink": {
+									"name": "NOTIFICATION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['WORKFLOW_NAME']"
+								},
+								"sink": {
+									"name": "WORKFLOW_NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_WF_INPROCESSDOCS_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "WF_INPROCESSDOCS_CMRlong",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "WF_INPROCESSDOCS_CMRshort",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"api_inprocess_docs_forms\",','\"filterParameters\": [{\"key\": \"workflow_name\",\"value\": \"CMR Long\"},','{\"key\": \"row_start\",\"value\": \"0\"},{\"key\": \"row_end\",\"value\": \"5000\"},','{\"key\": \"start_date\",\"value\": \"',formatDateTime(adddays(startOfDay(utcnow()),-25),'yyyy-MM-dd'),'\"},{\"key\": \"end_date\",\"value\": \"\"},{\"key\": \"type\",\"value\": \"Process\"}]','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['USER_NAME']"
+								},
+								"sink": {
+									"name": "USER_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['COMPLETION_DATE']"
+								},
+								"sink": {
+									"name": "COMPLETION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_NAME']"
+								},
+								"sink": {
+									"name": "STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TYPE_ID']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DUE_DATE']"
+								},
+								"sink": {
+									"name": "DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['SUPERVISOR']"
+								},
+								"sink": {
+									"name": "SUPERVISOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_STATUS']"
+								},
+								"sink": {
+									"name": "STEP_STATUS",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIRST_NAME']"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TASK_NAME']"
+								},
+								"sink": {
+									"name": "TASK_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAUNCH_DATE']"
+								},
+								"sink": {
+									"name": "LAUNCH_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['APPROVAL_USER_ID']"
+								},
+								"sink": {
+									"name": "APPROVAL_USER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['STEP_ORDER']"
+								},
+								"sink": {
+									"name": "STEP_ORDER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['LAST_NAME']"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ID']"
+								},
+								"sink": {
+									"name": "INFOCARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NOTIFICATION_DATE']"
+								},
+								"sink": {
+									"name": "NOTIFICATION_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['WORKFLOW_NAME']"
+								},
+								"sink": {
+									"name": "WORKFLOW_NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_WF_INPROCESSDOCS_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "MasterControl"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-15T08:50:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

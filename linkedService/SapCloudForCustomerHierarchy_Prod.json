@@ -1,0 +1,17 @@
+{
+	"name": "SapCloudForCustomerHierarchy_Prod",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SapCloudForCustomer",
+		"typeProperties": {
+			"url": "https://my370507.crm.ondemand.com/sap/c4c/odata/ana_businessanalytics_analytics.svc/",
+			"username": "CONCENTRIX",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJhNDJmNDBmMS00MzI0LTQ1ZTMtOTVlNi1iZTAyOTUxNzRkMDIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,178 @@
+{
+	"name": "Standard_RBAC_OUT_TruncateLoad_csi",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy From SQL ODBC DealerPermission_other To Datalake",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": "DELETE FROM [dbo].[cHUBDealerPermissions_RBAC]",
+						"writeBehavior": "insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SqlOdbcParameterizedDataset_Csi",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "out_cAEMDealerPermissions",
+							"schema_name": "csh_ext"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "cHUBDealerPermissions_RBAC",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy From SQL ODBC ProductCountry To Datalake",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": "DELETE FROM [dbo].[cHUBProductCountry_RBAC]",
+						"writeBehavior": "insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SqlOdbcParameterizedDataset_Csi",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "out_cAEMProductCountry",
+							"schema_name": "csh_ext"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "cHUBProductCountry_RBAC",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy From SQL ODBC idamUser To Datalake",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": "DELETE FROM [dbo].[cHUBidamUsers_RBAC]",
+						"writeBehavior": "insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SqlOdbcParameterizedDataset_Csi",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "out_idamUsers",
+							"schema_name": "csh_ext"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "cHUBidamUsers_RBAC",
+							"Schema": "dbo"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "MasterControl/RBAC"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:25:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

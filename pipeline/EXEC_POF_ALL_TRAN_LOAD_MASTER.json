@@ -1,0 +1,91 @@
+{
+	"name": "EXEC_POF_ALL_TRAN_LOAD_MASTER",
+	"properties": {
+		"activities": [
+			{
+				"name": "Exec_LoadECC",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "JF_POF_ALL_TRAN_LOAD_ECC",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"is_init_only": 0,
+						"project": "bods_JF_POF_ALL_TRAN_LOAD",
+						"schedule": "mon_to_fri_onceday_0810",
+						"sync_type": "full",
+						"target_system": "datalake",
+						"src_system": "ecc"
+					}
+				}
+			},
+			{
+				"name": "Exec_JF_tran_load_api",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exec_LoadECC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "JF_POF_ALL_TRAN_LOAD_BW",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"is_init_only": 0,
+						"project": "bods_JF_POF_ALL_TRAN_LOAD",
+						"schedule": "mon_to_fri_onceday_0810",
+						"sync_type": "full",
+						"target_system": "Datalake",
+						"src_system": "Extractor(ECC)"
+					}
+				}
+			},
+			{
+				"name": "Exec_Child_Process_POF",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exec_JF_tran_load_api",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Child_Process_POF",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "BODS Ingest/Bods_Ingest_Standard/bods_multi_source_project/JF_POF_ALL_TRAN_LOAD"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-01T09:43:49Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

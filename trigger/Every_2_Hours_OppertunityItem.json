@@ -1,0 +1,41 @@
+{
+	"name": "Every_2_Hours_OppertunityItem",
+	"properties": {
+		"description": "Opportunity Item Delta Load",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_DeltaLoad",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "6"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2021-08-24T20:28:00",
+				"timeZone": "Eastern Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						3,
+						9,
+						12,
+						15,
+						18,
+						21
+					]
+				}
+			}
+		}
+	}
+}

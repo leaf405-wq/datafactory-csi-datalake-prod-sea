@@ -1,0 +1,262 @@
+{
+	"name": "Highradius_To_Datalake_Daily_Load",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Copy_Files_Parent_Pipeline",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Items": {
+						"Files": [
+							{
+								"file_name": "BPC_COSTS.txt",
+								"load_type": "Insert",
+								"target_table_name": "BPC_COSTS",
+								"key_columns": [],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_DEST_ALL.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_DEST_ALL",
+								"key_columns": [
+									"CTRY"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_QPR.txt",
+								"load_type": "Insert",
+								"target_table_name": "BPC_QPR",
+								"key_columns": [],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_QPR_COPA.txt",
+								"load_type": "Insert",
+								"target_table_name": "BPC_QPR_COPA",
+								"key_columns": [],
+								"sp_enable": true,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "MM_BPC_STAT.txt",
+								"load_type": "Insert",
+								"target_table_name": "MM_BPC_STAT",
+								"key_columns": [],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "MM_BPC_TMP.txt",
+								"load_type": "Insert",
+								"target_table_name": "MM_BPC_TMP",
+								"key_columns": [],
+								"sp_enable": true,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "Z_BPC_MD_PC.txt",
+								"load_type": "Upsert",
+								"target_table_name": "Z_BPC_MD_PC",
+								"key_columns": [
+									"PCID"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "Z_BPC_MD_CTRY.txt",
+								"load_type": "Upsert",
+								"target_table_name": "Z_BPC_MD_CTRY",
+								"key_columns": [
+									"CTRYID"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_DIMACCOUNT.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_DIMACCOUNT",
+								"key_columns": [
+									"ID1"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_DIMPROFITCENTER.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_DIMPROFITCENTER",
+								"key_columns": [
+									"ID1"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_MBRACCOUNT.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_MBRACCOUNT",
+								"key_columns": [
+									"ID"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_MBRPROFITCENTER.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_MBRPROFITCENTER",
+								"key_columns": [
+									"ID"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "Z_BPC_ACTAOP.txt",
+								"load_type": "Insert",
+								"target_table_name": "Z_BPC_ACTAOP",
+								"key_columns": [],
+								"sp_enable": true,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "Z_BPC_OUTLOOK.txt",
+								"load_type": "Insert",
+								"target_table_name": "Z_BPC_OUTLOOK",
+								"key_columns": [],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_PC.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_PC",
+								"key_columns": [
+									"PC"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_FA.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_FA",
+								"key_columns": [
+									"ID"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_ACC.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_ACC",
+								"key_columns": [
+									"ID"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_INV.txt",
+								"load_type": "Insert",
+								"target_table_name": "BPC_INV",
+								"key_columns": [],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_COMP.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_COMP",
+								"key_columns": [
+									"ID"
+								],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_DEST.txt",
+								"load_type": "Upsert",
+								"target_table_name": "BPC_DEST",
+								"key_columns": [
+									"CTRY"
+								],
+								"sp_enable": false,
+								"add_hir_enable": false
+							},
+							{
+								"file_name": "BPC_QTY.txt",
+								"load_type": "Insert",
+								"target_table_name": "BPC_QTY",
+								"key_columns": [],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_QTY_DSBM.txt",
+								"load_type": "Insert",
+								"target_table_name": "BPC_QTY_DSBM",
+								"key_columns": [],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_REV.txt",
+								"load_type": "Insert",
+								"target_table_name": "BPC_REV",
+								"key_columns": [],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "BPC_COGS.txt",
+								"load_type": "Insert",
+								"target_table_name": "BPC_COGS",
+								"key_columns": [],
+								"sp_enable": false,
+								"add_hir_enable": true
+							},
+							{
+								"file_name": "Z_BPC_AOP.txt",
+								"load_type": "Insert",
+								"target_table_name": "Z_BPC_AOP",
+								"key_columns": [],
+								"sp_enable": true,
+								"add_hir_enable": true
+							}
+						]
+					}
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-08-14T05:28:00",
+				"timeZone": "Eastern Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						13
+					]
+				}
+			}
+		}
+	}
+}

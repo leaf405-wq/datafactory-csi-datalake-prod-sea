@@ -1,0 +1,72 @@
+{
+	"name": "hye_table_preview",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SapTableSource",
+						"rfcTableOptions": "OBJEK EQ '6578769' AND ATINN EQ '0000000694'",
+						"customRfcReadTableFunctionModule": "",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_saptable_ecc",
+						"type": "DatasetReference",
+						"parameters": {
+							"tb_name": "ZVAUSP_BODS"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_blob_csv_ecc",
+						"type": "DatasetReference",
+						"parameters": {
+							"tbname": "mara_test"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SWO_Testing"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-27T07:40:55Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

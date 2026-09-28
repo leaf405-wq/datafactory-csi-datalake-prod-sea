@@ -1,0 +1,44 @@
+{
+	"name": "DailyDelta_ServiceRequestLargeCollections",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Delta_Load_Master_Pipeline",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "4"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2020-12-28T10:01:00Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"minutes": [
+						10
+					],
+					"hours": [
+						1,
+						7
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday",
+						"Saturday"
+					]
+				}
+			}
+		}
+	}
+}

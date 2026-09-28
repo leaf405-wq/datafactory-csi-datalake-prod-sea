@@ -1,0 +1,49 @@
+{
+	"name": "tr_ecc_md_stg_mon_to_fri_0730_1330",
+	"properties": {
+		"description": "Mon to fri 上午7.30，下午1.30各跑一次",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_SSM_TTBL",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_SSM_TTBL",
+					"schedule": "mon_to_fri_0730_1330",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-02T02:36:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						7,
+						13
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

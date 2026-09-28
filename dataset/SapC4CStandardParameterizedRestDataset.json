@@ -1,0 +1,24 @@
+{
+	"name": "SapC4CStandardParameterizedRestDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SapC4CRestLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"SourceCollection": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@dataset().SourceCollection",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

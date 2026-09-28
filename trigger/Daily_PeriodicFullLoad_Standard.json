@@ -1,0 +1,44 @@
+{
+	"name": "Daily_PeriodicFullLoad_Standard",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_FullLoad",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "1",
+					"DeltaType": "AND DeltaType='F'"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-07-23T05:39:00Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						22
+					],
+					"weekDays": [
+						"Saturday",
+						"Friday",
+						"Thursday",
+						"Wednesday",
+						"Tuesday",
+						"Monday"
+					]
+				}
+			}
+		}
+	}
+}

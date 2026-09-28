@@ -1,0 +1,27 @@
+{
+	"name": "SharePointOnlineList_Communication",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "SharePointOnlineList Communication",
+		"annotations": [],
+		"type": "SharePointOnlineList",
+		"typeProperties": {
+			"siteUrl": "https://carestreamcloud.sharepoint.com/sites/communications/",
+			"tenantId": "9a13606d-26b8-46e0-858c-19d32770193c",
+			"servicePrincipalId": "faeee916-1db9-43e7-9ea5-b1960e3080a2",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "SharepointOnlineCommunication",
+				"secretVersion": "627cc567490743fbb7d9d83264043b53"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

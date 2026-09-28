@@ -1,0 +1,24 @@
+{
+	"name": "SapCloudForCustomerHierarchy",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SapCloudForCustomer",
+		"typeProperties": {
+			"url": "https://my370316.crm.ondemand.com/sap/c4c/odata/ana_businessanalytics_analytics.svc/",
+			"username": "CONCENTRIX",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-c4c-etl-password"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,13 @@
+{
+	"name": "MasterControlDatasetProd",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "MasterControlProd",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

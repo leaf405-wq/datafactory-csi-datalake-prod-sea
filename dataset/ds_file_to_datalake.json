@@ -1,0 +1,66 @@
+{
+	"name": "ds_file_to_datalake",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlServerLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TableName": {
+				"type": "string",
+				"defaultValue": "BPC_DEST"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "CTRY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CTRYDESC",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PLCTRY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PLCTRYDESC",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CLUSTER",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CLUSTERDESC",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SUBREG",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SUBREGDESC",
+				"type": "nvarchar"
+			},
+			{
+				"name": "REGION",
+				"type": "nvarchar"
+			},
+			{
+				"name": "REGIONDESC",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"table": {
+				"value": "@dataset().TableName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

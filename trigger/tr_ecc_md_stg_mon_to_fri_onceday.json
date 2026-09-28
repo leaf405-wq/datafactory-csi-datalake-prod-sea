@@ -1,0 +1,47 @@
+{
+	"name": "tr_ecc_md_stg_mon_to_fri_onceday",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "ECC_Ingest_Md_Stg_Full",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods",
+					"schedule": "mon_to_fri_onceday",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-13T07:37:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						1
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

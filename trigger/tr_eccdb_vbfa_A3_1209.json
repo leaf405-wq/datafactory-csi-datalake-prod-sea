@@ -1,0 +1,42 @@
+{
+	"name": "tr_eccdb_vbfa_A3_1209",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "VBFA_Ingest_GMAT",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_ENT_SAP_VBFA",
+					"schedule": "mon_to_sun_onceday_1209",
+					"sync_type": "insert",
+					"target_system": "gmat",
+					"src_system": "eccdb",
+					"PARAM_3": "120001",
+					"PARAM_4": "180000"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-05-13T05:47:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						9
+					],
+					"hours": [
+						12
+					]
+				}
+			}
+		}
+	}
+}

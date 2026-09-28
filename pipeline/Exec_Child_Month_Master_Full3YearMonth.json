@@ -1,0 +1,79 @@
+{
+	"name": "Exec_Child_Month_Master_Full3YearMonth",
+	"properties": {
+		"activities": [
+			{
+				"name": "var_list_years",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_list_years",
+					"value": {
+						"value": "@range(sub(int(formatDateTime(utcNow(), 'yyyy')), 2), 3)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach_Years",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "var_list_years",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_list_years')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Execute_Child_Process_Monthly",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Child_Process_ByMonth_Full3YearMonth",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"var_year": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_list_years": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "SLT_INGEST/SLT_INGEST_DELTA/SLT_Ingest_Delta"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-20T10:05:07Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

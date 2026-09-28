@@ -1,0 +1,33 @@
+{
+	"name": "PowerBIDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "PowerBIAPILinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"start_date": {
+				"type": "string",
+				"defaultValue": "2024-05-01"
+			},
+			"end_date": {
+				"type": "string",
+				"defaultValue": "2024-05-01"
+			},
+			"tick": {
+				"type": "string",
+				"defaultValue": "'"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@concat('https://api.powerbi.com/v1.0/myorg/admin/activityevents?startDateTime=',dataset().tick,dataset().start_date,dataset().tick,'&endDateTime=',dataset().tick,dataset().end_date,dataset().tick)",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

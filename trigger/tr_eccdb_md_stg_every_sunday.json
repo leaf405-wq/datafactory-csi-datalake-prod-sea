@@ -1,0 +1,43 @@
+{
+	"name": "tr_eccdb_md_stg_every_sunday",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "ECCDB_Ingest_Md_Stg_Full",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods",
+					"schedule": "every_sunday",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "eccdb"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-13T07:50:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						0
+					],
+					"weekDays": [
+						"Sunday"
+					]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,16 @@
+{
+	"name": "ds_mariadb_plm",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_mariadb_plm",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "MariaDBTable",
+		"schema": [],
+		"typeProperties": {
+			"tableName": "mdm_view"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,259 @@
+{
+	"name": "Child_Process_Year",
+	"properties": {
+		"activities": [
+			{
+				"name": "var_year",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_year",
+					"value": [
+						"2007",
+						"2008",
+						"2009",
+						"2010",
+						"2011",
+						"2012",
+						"2013",
+						"2014",
+						"2015",
+						"2016",
+						"2017",
+						"2018",
+						"2019",
+						"2020",
+						"2021",
+						"2022",
+						"2023",
+						"2024",
+						"2025",
+						"2026"
+					]
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "var_year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_year')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Execute Pipeline01",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "SLT_Ingest_Datalake_Delta_init_01",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "slt",
+									"schedule": "daily",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": "test1",
+									"var_year": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ForEach_big14",
+				"type": "ForEach",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "ForEach02",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_year')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Exec_big14",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "SLT_Ingest_Datalake_Delta_init_big14",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "slt",
+									"schedule": "daily",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": "test_year1",
+									"var_year": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ForEach02",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ForEach1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_year')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "SLT_Ingest_Datalake_Delta_init_02",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "SLT_Ingest_Datalake_Delta_init_02",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "slt",
+									"schedule": "daily",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": "test2",
+									"var_year": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ForEach03",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ForEach_big14",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_year')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "SLT_Ingest_Datalake_Delta_init_03",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "SLT_Ingest_Datalake_Delta_init_03",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "slt",
+									"schedule": "daily",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": "test3",
+									"var_year": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_year": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "SLT_INGEST/SLT_INGEST_DELTA/SLT_Init_Load/by_year"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-21T00:00:22Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

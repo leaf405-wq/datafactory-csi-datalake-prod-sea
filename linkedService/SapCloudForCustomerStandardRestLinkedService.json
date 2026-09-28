@@ -1,0 +1,27 @@
+{
+	"name": "SapCloudForCustomerStandardRestLinkedService",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Linked Service for Answers Collection using REST connector.",
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://my370316.crm.ondemand.com/sap/c4c/odata/v1/c4codataapi/AnswersCollection",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Basic",
+			"userName": "MSADF",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-c4c-etl-password"
+			}
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

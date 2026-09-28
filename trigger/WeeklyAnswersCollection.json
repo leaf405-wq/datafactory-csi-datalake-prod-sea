@@ -1,0 +1,44 @@
+{
+	"name": "WeeklyAnswersCollection",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_AnswersCollection",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Source_Collection": "AnswersCollection",
+					"Table_Name": "C4C_Answers"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-08-31T10:28:00",
+				"timeZone": "Eastern Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						9
+					],
+					"weekDays": [
+						"Monday",
+						"Saturday",
+						"Friday",
+						"Thursday",
+						"Wednesday",
+						"Tuesday"
+					]
+				}
+			}
+		}
+	}
+}

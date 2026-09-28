@@ -1,0 +1,43 @@
+{
+	"name": "tr_ecc_md_stg_sun_onceday_0505",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_WS_TTBL_B",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_WS_TTBL_B",
+					"schedule": "sun_onceday_0505",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-08T06:51:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						5
+					],
+					"hours": [
+						5
+					],
+					"weekDays": [
+						"Sunday"
+					]
+				}
+			}
+		}
+	}
+}

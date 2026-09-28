@@ -1,0 +1,50 @@
+{
+	"name": "tr_ecc_md_stg_mon_to_fri_onceday_2232",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_WS_TTBL_A",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_WS_TTBL_A",
+					"schedule": "mon_to_fri_onceday_2232",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-02T03:34:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						32
+					],
+					"hours": [
+						22,
+						4,
+						10,
+						16
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

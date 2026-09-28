@@ -1,0 +1,21 @@
+{
+	"name": "SapOdp1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SapOdp",
+		"typeProperties": {
+			"clientId": "23",
+			"sncMode": false,
+			"userName": "ETLBODSDP",
+			"subscriberName": "ADF_COPA_SUB",
+			"server": "10.114.146.66",
+			"systemNumber": "00",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI5OTNiZGMzNC0wNmY4LTQ2OWEtYTVlZS05YjY1ZDU4OGRlZDIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

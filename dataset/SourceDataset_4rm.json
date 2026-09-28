@@ -1,0 +1,426 @@
+{
+	"name": "SourceDataset_4rm",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlServerLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "RCLNT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "GL_SIRID",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RLDNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RRCTY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RVERS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RYEAR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RTCUR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RUNIT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DRCRK",
+				"type": "nvarchar"
+			},
+			{
+				"name": "POPER",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DOCCT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DOCNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DOCLN",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RBUKRS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RPRCTR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RHOART",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RFAREA",
+				"type": "nvarchar"
+			},
+			{
+				"name": "KOKRS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RACCT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "HRKFT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RASSC",
+				"type": "nvarchar"
+			},
+			{
+				"name": "EPRCTR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ACTIV",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AFABE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "OCLNT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SBUKRS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SPRCTR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SHOART",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SFAREA",
+				"type": "nvarchar"
+			},
+			{
+				"name": "TSL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "HSL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "KSL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "MSL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CPUDT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CPUTM",
+				"type": "nvarchar"
+			},
+			{
+				"name": "USNAM",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SGTXT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AUTOM",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DOCTY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "BLDAT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "BUDAT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "WSDAT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "REFDOCNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "REFRYEAR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "REFDOCLN",
+				"type": "nvarchar"
+			},
+			{
+				"name": "REFDOCCT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "REFACTIV",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AWTYP",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AWORG",
+				"type": "nvarchar"
+			},
+			{
+				"name": "WERKS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "GSBER",
+				"type": "nvarchar"
+			},
+			{
+				"name": "KOSTL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LSTAR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AUFNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AUFPL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ANLN1",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ANLN2",
+				"type": "nvarchar"
+			},
+			{
+				"name": "MATNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "BWKEY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "BWTAR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ANBWA",
+				"type": "nvarchar"
+			},
+			{
+				"name": "KUNNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LIFNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RMVCT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "EBELN",
+				"type": "nvarchar"
+			},
+			{
+				"name": "EBELP",
+				"type": "nvarchar"
+			},
+			{
+				"name": "KSTRG",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ERKRS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PAOBJNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PASUBNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PS_PSP_PNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "KDAUF",
+				"type": "nvarchar"
+			},
+			{
+				"name": "KDPOS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "FKART",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VKORG",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VTWEG",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AUBEL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AUPOS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SPART",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VBELN",
+				"type": "nvarchar"
+			},
+			{
+				"name": "POSNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VKGRP",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VKBUR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VBUND",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LOGSYS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ALEBN",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AWSYS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VERSA",
+				"type": "nvarchar"
+			},
+			{
+				"name": "STFLG",
+				"type": "nvarchar"
+			},
+			{
+				"name": "STOKZ",
+				"type": "nvarchar"
+			},
+			{
+				"name": "STAGR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "GRTYP",
+				"type": "nvarchar"
+			},
+			{
+				"name": "REP_MATNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CO_PRZNR",
+				"type": "nvarchar"
+			},
+			{
+				"name": "IMKEY",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DABRZ",
+				"type": "nvarchar"
+			},
+			{
+				"name": "VALUT",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RSCOPE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AWREF_REV",
+				"type": "nvarchar"
+			},
+			{
+				"name": "AWORG_REV",
+				"type": "nvarchar"
+			},
+			{
+				"name": "BWART",
+				"type": "nvarchar"
+			},
+			{
+				"name": "BLART",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "GLPCA"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

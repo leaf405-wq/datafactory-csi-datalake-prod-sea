@@ -1,0 +1,48 @@
+{
+	"name": "ecc_md_stg_mon_to_fri_onceday_0406",
+	"properties": {
+		"description": "mon to fri once a day AM 04:06",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "bods_JF_PRC_ALL_withsp",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_PRC_ALL",
+					"schedule": "mon_to_fri_onceday_0406",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-01T03:15:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						6
+					],
+					"hours": [
+						4
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

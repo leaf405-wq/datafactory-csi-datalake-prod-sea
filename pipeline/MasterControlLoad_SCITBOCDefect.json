@@ -1,0 +1,65 @@
+{
+	"name": "MasterControlLoad_SCITBOCDefect",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute MasterControlToDataLake_SCL",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_SCL",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "MasterControlToDataLake_BOCDefectTracking_Loop",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Wait1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "MasterControlToDataLake_BOCDefectTracking_Loop",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "Execute MasterControlToDataLake_SCL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 30
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:35:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

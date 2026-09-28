@@ -1,0 +1,49 @@
+{
+	"name": "tr_md_stg_datalake_sun_to_fri_onceday_0553",
+	"properties": {
+		"description": "sun to fri once a day AM 05:53",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_DL_PPCL3",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_DL_PPCL3",
+					"schedule": "sun_to_fri_onceday_0553",
+					"sync_type": "full",
+					"target_system": "datalake",
+					"src_system": "md_stg"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-13T07:54:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						53
+					],
+					"hours": [
+						5
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday",
+						"Sunday"
+					]
+				}
+			}
+		}
+	}
+}

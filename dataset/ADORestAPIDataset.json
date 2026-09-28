@@ -1,0 +1,24 @@
+{
+	"name": "ADORestAPIDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AnalyticsRestLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Relative_Url": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@dataset().Relative_Url",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

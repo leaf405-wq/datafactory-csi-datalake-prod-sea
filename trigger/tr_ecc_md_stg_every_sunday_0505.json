@@ -1,0 +1,44 @@
+{
+	"name": "tr_ecc_md_stg_every_sunday_0505",
+	"properties": {
+		"description": "every_sunday_0505",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_PRC_KON",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_PRC_KON",
+					"schedule": "every_sunday_0505",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "eccdb"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-01T03:49:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						5
+					],
+					"hours": [
+						5
+					],
+					"weekDays": [
+						"Sunday"
+					]
+				}
+			}
+		}
+	}
+}

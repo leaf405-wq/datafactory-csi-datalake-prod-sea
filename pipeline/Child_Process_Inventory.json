@@ -1,0 +1,89 @@
+{
+	"name": "Child_Process_Inventory",
+	"properties": {
+		"activities": [
+			{
+				"name": "var_year",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_year",
+					"value": {
+						"value": "@union(\n    take(range(2007, sub(int(formatDateTime(addToTime(utcNow(), 1, 'Year'), 'yyyy')), 2007)), 15), \n    skip(range(2007, sub(int(formatDateTime(addToTime(utcNow(), 1, 'Year'), 'yyyy')), 2007)), 16)\n)\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach_byyear",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "var_year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_year')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Exec_BYyear",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "JP_DP_INVENTORY_Byyear",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "bods_JF_DP_INVENTORY",
+									"schedule": "daily_0500",
+									"sync_type": "insert",
+									"target_system": "datalake",
+									"src_system": {
+										"value": "Extractor(ECC)",
+										"type": "Expression"
+									},
+									"var_year": {
+										"value": "@string(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_year": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "BODS Ingest/Bods_Ingest_Delta/ECC_API_Ingest_Datalake_Delta"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-26T01:30:30Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

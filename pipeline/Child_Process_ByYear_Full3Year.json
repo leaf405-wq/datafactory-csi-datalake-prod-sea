@@ -1,0 +1,86 @@
+{
+	"name": "Child_Process_ByYear_Full3Year",
+	"properties": {
+		"activities": [
+			{
+				"name": "var_year",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_year",
+					"value": {
+						"value": "@range(sub(int(formatDateTime(utcNow(), 'yyyy')), 2), 3)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach_byyear",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "var_year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('var_year')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Exec_BYyear",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "SLT_Ingest_Datalake_Delta_Full3Year",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"is_init_only": 0,
+									"project": "slt",
+									"schedule": "biweekly",
+									"sync_type": "full",
+									"target_system": "datalake",
+									"src_system": "full3year",
+									"var_year": {
+										"value": "@string(item())",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"var_year": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "SLT_INGEST/SLT_INGEST_DELTA/SLT_Ingest_Delta"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-18T06:55:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

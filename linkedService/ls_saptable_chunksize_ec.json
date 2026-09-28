@@ -1,0 +1,35 @@
+{
+	"name": "ls_saptable_chunksize_ec",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"rowCount": {
+				"type": "int"
+			},
+			"rowSkips": {
+				"type": "int"
+			}
+		},
+		"annotations": [],
+		"type": "SapTable",
+		"typeProperties": {
+			"clientId": "23",
+			"sncMode": false,
+			"userName": "ETLBODSDP",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-ecc-etl-password"
+			},
+			"server": "10.114.146.80",
+			"systemNumber": "00"
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIntegrationRuntimeNew",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

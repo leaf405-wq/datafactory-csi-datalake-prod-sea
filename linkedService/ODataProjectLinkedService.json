@@ -1,0 +1,21 @@
+{
+	"name": "ODataProjectLinkedService",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "OData",
+		"typeProperties": {
+			"url": "https://analytics.dev.azure.com/csi-devops/_odata/v4.0-preview/",
+			"authenticationType": "Windows",
+			"userName": "shankar.chintada@carestream.com",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVaultLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "CSHDevOpsKey"
+			}
+		}
+	}
+}

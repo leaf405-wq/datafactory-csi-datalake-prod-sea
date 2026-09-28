@@ -1,0 +1,42 @@
+{
+	"name": "tr_slt_delta_bycrossyear_0600",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "SLT_Ingest_Datalake_Delta_ByDay_CrossYear",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "slt",
+					"schedule": "every_15_minutes",
+					"sync_type": "full",
+					"target_system": "datalake",
+					"src_system": "dev_delta_crossyear",
+					"interval_duration": "3",
+					"delta_type": "crossyear"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2026-08-20T05:29:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						6
+					]
+				}
+			}
+		}
+	}
+}

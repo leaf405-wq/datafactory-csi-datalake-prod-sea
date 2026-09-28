@@ -1,0 +1,224 @@
+{
+	"name": "Standard_DeltaLoad_Misseddata",
+	"properties": {
+		"activities": [
+			{
+				"name": "Watermark_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select T.*\nfrom [GOLDDB].Service_Analytics.ACME_TicketStatusAudit T\n                left join RAWDB.dbo.C4C_ServiceRequest SR\n                                on T.ID = SR.ID\nwhere T.StatusCode <> SR.ServiceRequestUserLifeCycleStatusCode\n                or SR.ID is null\norder by ID\n ",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEachDeltaLoad",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Watermark_Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Watermark_Lookup').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "C4CToAzureCopyDeltaload",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SapCloudForCustomerSource",
+									"query": {
+										"value": "@concat('$filter=ID eq ''', item().ID, ''' &$format=json')\n\n\n\n\n",
+										"type": "Expression"
+									},
+									"httpRequestTimeout": "05:00:00"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"writeBatchTimeout": "10:00:00",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": true
+								},
+								"enableStaging": false,
+								"parallelCopies": 5
+							},
+							"inputs": [
+								{
+									"referenceName": "SapC4cParameterizedStandardDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Name": {
+											"value": "ServiceRequestCollection",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": {
+											"value": "C4C_ServiceRequest",
+											"type": "Expression"
+										},
+										"Schema": "Stage"
+									}
+								}
+							]
+						},
+						{
+							"name": "SP_DeleteInsert",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "SP_SchemaDrift",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[Stage].[SP_DeleteInsert_Delta]",
+								"storedProcedureParameters": {
+									"columname": {
+										"value": {
+											"value": "EntityLastChangedOn",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Run_ID": {
+										"value": {
+											"value": "@{concat('sdwgr','-',\n'ServiceRequestCollection')}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "C4C_ServiceRequest",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServerLinkedService",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "SP_SchemaDrift",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "C4CToAzureCopyDeltaload",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[Stage].[SP_SchemaDrift]",
+								"storedProcedureParameters": {
+									"job_ID": {
+										"value": {
+											"value": "@{concat('dsafdswg','-',\n'ServiceRequestCollection')}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"Src_Table_Name": {
+										"value": {
+											"value": "C4C_ServiceRequest",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServerLinkedService",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"concurrency": 5,
+		"parameters": {
+			"Batch": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Standard"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:23:33Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

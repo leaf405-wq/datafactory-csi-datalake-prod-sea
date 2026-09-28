@@ -1,0 +1,291 @@
+{
+	"name": "MasterControlToDataLake_VendorMD",
+	"properties": {
+		"activities": [
+			{
+				"name": "Web1",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Script1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "@pipeline().globalParameters.mastercontrol_url",
+						"type": "Expression"
+					},
+					"body": {
+						"serviceName": "ConnectionService",
+						"methodName": "connectWithApiKey",
+						"arguments": {
+							"apiKey": "8be95316-3f36-4dfa-9e4b-5756de9d4b34",
+							"logoutCurrentWebConnection": false
+						}
+					}
+				}
+			},
+			{
+				"name": "Script1",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "truncate table dbo.[Mastercontrol_VendorMD] "
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Vendor",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Web1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"GETSUPPLIERID\",','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['FIELD_VALUE']"
+								},
+								"sink": {
+									"name": "FIELD_VALUE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_REVISION']"
+								},
+								"sink": {
+									"name": "INFOCARD_REVISION",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_CREATE_DATE']"
+								},
+								"sink": {
+									"name": "INFOCARD_CREATE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['MOVED_TO_PHASE_DATE']"
+								},
+								"sink": {
+									"name": "MOVED_TO_PHASE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_ROUTE_NAME']"
+								},
+								"sink": {
+									"name": "INFOCARD_ROUTE_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_TITLE']"
+								},
+								"sink": {
+									"name": "INFOCARD_TITLE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_STEP_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_STEP_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_VAULT_NAME']"
+								},
+								"sink": {
+									"name": "INFOCARD_VAULT_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIELD_ALT']"
+								},
+								"sink": {
+									"name": "FIELD_ALT",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_STEP_NAME']"
+								},
+								"sink": {
+									"name": "INFOCARD_STEP_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_NUMBER']"
+								},
+								"sink": {
+									"name": "INFOCARD_NUMBER",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['AUDIT_DATE']"
+								},
+								"sink": {
+									"name": "Audit_Date",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_STEP_DUE_DATE']"
+								},
+								"sink": {
+									"name": "INFOCARD_STEP_DUE_DATE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ROW_NUM1']"
+								},
+								"sink": {
+									"name": "ROW_NUM1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['FIELD_ID']"
+								},
+								"sink": {
+									"name": "FIELD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_CREATOR']"
+								},
+								"sink": {
+									"name": "INFOCARD_CREATOR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['INFOCARD_RELEASE_DATE']"
+								},
+								"sink": {
+									"name": "INFOCARD_RELEASE_DATE",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']",
+						"mapComplexValuesToString": false
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_VedndorMD",
+							"Schema": "dbo"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "MasterControl"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-15T08:50:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

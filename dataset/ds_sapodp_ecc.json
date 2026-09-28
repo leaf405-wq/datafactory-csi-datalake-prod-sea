@@ -1,0 +1,25 @@
+{
+	"name": "ds_sapodp_ecc",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sapodp_ecc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"tb_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SapOdpResource",
+		"schema": [],
+		"typeProperties": {
+			"context": "SAPI",
+			"objectName": {
+				"value": "@dataset().tb_name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,203 @@
+{
+	"name": "Standard_FailedAttachmentsLoad",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_error",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "AttchmentError",
+							"Schema": "Dmp"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_error",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_error').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "C4CToAzureCopy Full Load",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"paginationRules": {
+										"AbsoluteUrl": {
+											"value": "$.d.__next",
+											"type": "Expression"
+										},
+										"supportRFC5988": "true"
+									}
+								},
+								"sink": {
+									"type": "SqlServerSink"
+								},
+								"enableStaging": false,
+								"translator": {
+									"value": "@json(activity('Lookup').output.firstRow.Mapping)",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SapC4CStandardParameterizedRestDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"SourceCollection": {
+											"value": "@item().SourceCollection",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": {
+											"value": "@activity('Lookup').output.firstRow.Table_Name",
+											"type": "Expression"
+										},
+										"Schema": "Dmp"
+									}
+								}
+							]
+						},
+						{
+							"name": "Update Log",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "C4CToAzureCopy Full Load",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "INSERT INTO dmp.AttchmentError values ('@{item().SourceCollection}' , 'Failed','@{REPLACE(activity('C4CToAzureCopy Full Load').Error.Message,'''','')}','@{utcNow()}');\n\nSELECT * FROM dmp.AttchmentError",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": ".",
+										"Schema": "."
+									}
+								},
+								"firstRowOnly": false
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Select * from [Stage].[LookupTable_Attachments] where Batch = 1",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Standard"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:22:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

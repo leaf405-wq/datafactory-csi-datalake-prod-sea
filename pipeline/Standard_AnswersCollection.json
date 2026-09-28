@@ -1,0 +1,401 @@
+{
+	"name": "Standard_AnswersCollection",
+	"properties": {
+		"activities": [
+			{
+				"name": "C4CToAzureCopyAnswersCollection",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"AbsoluteUrl": "$.d.__next"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": {
+							"value": "TRUNCATE TABLE @{concat('Stage.',pipeline().parameters.Table_Name)}\n",
+							"type": "Expression"
+						},
+						"writeBehavior": "insert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['ObjectID']"
+								},
+								"sink": {
+									"name": "ObjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ParentObjectID']"
+								},
+								"sink": {
+									"name": "ParentObjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ETag']"
+								},
+								"sink": {
+									"name": "ETag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['QuestionRefID']"
+								},
+								"sink": {
+									"name": "QuestionRefID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['AnswerRefID']"
+								},
+								"sink": {
+									"name": "AnswerRefID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['AmountValue']['currencyCode']"
+								},
+								"sink": {
+									"name": "AmountValue_currencyCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['AmountValue']['content']"
+								},
+								"sink": {
+									"name": "AmountValue_content",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DateValue']"
+								},
+								"sink": {
+									"name": "DateValue",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['Indicator']"
+								},
+								"sink": {
+									"name": "Indicator",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['QuantityValue']['unitCode']"
+								},
+								"sink": {
+									"name": "QuantityValue_unitCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['QuantityValue']['content']"
+								},
+								"sink": {
+									"name": "QuantityValue_content",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TextValue']['languageCode']"
+								},
+								"sink": {
+									"name": "TextValue_languageCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['TextValue']['content']"
+								},
+								"sink": {
+									"name": "TextValue_content",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['d']['results']",
+						"mapComplexValuesToString": true
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SapC4CStandardRESTDataset",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": {
+								"value": "@pipeline().parameters.Table_Name",
+								"type": "Expression"
+							},
+							"Schema": "Stage"
+						}
+					}
+				]
+			},
+			{
+				"name": "Error Log Copy Activity",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "C4CToAzureCopyAnswersCollection",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('C4CToAzureCopyAnswersCollection').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',pipeline().parameters.Source_Collection)}'\n;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "DeleteInsert",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "C4CToAzureCopyAnswersCollection",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[Stage].[SP_DeleteInsert_Nested]",
+					"storedProcedureParameters": {
+						"TableName": {
+							"value": {
+								"value": "@pipeline().parameters.Table_Name",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Error Log Delete Insert",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "DeleteInsert",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('DeleteInsert').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',pipeline().parameters.Source_Collection)}'\n;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Unit Test and Update Log",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "DeleteInsert",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Unit_Test",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": false,
+					"parameters": {
+						"Table_Name": {
+							"value": "@pipeline().parameters.Table_Name",
+							"type": "Expression"
+						},
+						"Pipeline_ID": {
+							"value": "@{concat(pipeline().RunId,'-',pipeline().parameters.Source_Collection)}",
+							"type": "Expression"
+						},
+						"Pipeline_Name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"Job_Date": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"Collection_Name": {
+							"value": "@pipeline().parameters.Source_Collection",
+							"type": "Expression"
+						},
+						"API_Type": "Standard"
+					}
+				}
+			},
+			{
+				"name": "Error Log Unit Test",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Unit Test and Update Log",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Update dbo.C4C__JobLog\nSET JobStatus\n= '@{REPLACE(activity('Unit Test and Update Log').Error.Message,'''','')}'\nOUTPUT 1 WHERE \nCallingModule='@{concat(pipeline().RunId,'-',pipeline().parameters.Source_Collection)}'\n;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"parameters": {
+			"Source_Collection": {
+				"type": "string",
+				"defaultValue": "AnswersCollection"
+			},
+			"Table_Name": {
+				"type": "string",
+				"defaultValue": "C4C_Answers"
+			}
+		},
+		"folder": {
+			"name": "Standard"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:35:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

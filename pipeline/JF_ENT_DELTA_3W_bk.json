@@ -1,0 +1,788 @@
+{
+	"name": "JF_ENT_DELTA_3W_bk",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get_BodsMeta_Data",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderStoredProcedureName": "[metadata].[get_metadata]",
+						"storedProcedureParameters": {
+							"is_init_only": {
+								"type": "Int32",
+								"value": {
+									"value": "@pipeline().parameters.is_init_only",
+									"type": "Expression"
+								}
+							},
+							"project": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.project",
+									"type": "Expression"
+								}
+							},
+							"schedule": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.schedule",
+									"type": "Expression"
+								}
+							},
+							"sync_type": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.sync_type",
+									"type": "Expression"
+								}
+							},
+							"src_system": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.src_system",
+									"type": "Expression"
+								}
+							},
+							"target_system": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.target_system",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sqlsever_datalake",
+						"type": "DatasetReference",
+						"parameters": {
+							"tb_name": ".",
+							"schema": "metadata",
+							"db_name": "meta_config"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ByTable_Ingest",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get_BodsMeta_Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get_BodsMeta_Data').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copydata",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "sp_write_log",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SapOpenHubSource",
+									"additionalColumns": [
+										{
+											"name": "LoadDate",
+											"value": {
+												"value": "@formatDateTime(utcnow(), 'yyyy-MM-dd')",
+												"type": "Expression"
+											}
+										},
+										{
+											"name": "ErrFlag",
+											"value": " "
+										},
+										{
+											"name": "UniqueID_01D",
+											"value": ""
+										},
+										{
+											"name": "DI_EXTRACT_TIME",
+											"value": " "
+										}
+									],
+									"excludeLastRequest": false
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"preCopyScript": {
+										"value": "DROP TABLE IF EXISTS @{concat('stage_bods','.',item().src_table_name)}",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": true,
+									"tableOption": "autoCreate"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_SapOpenHub_bw",
+									"type": "DatasetReference",
+									"parameters": {
+										"tb_name": {
+											"value": "@item().src_table_name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sqlserver_gmat",
+									"type": "DatasetReference",
+									"parameters": {
+										"db_name": "gmat",
+										"tb_name": {
+											"value": "@item().src_table_name",
+											"type": "Expression"
+										},
+										"schema_name": "stage_bods"
+									}
+								}
+							]
+						},
+						{
+							"name": "sp_updateerror_log",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copydata",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_update_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "@activity('Copydata').error.message",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "sp_update_log",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "If Condition1",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_update_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "Error",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "sp_write_log",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_write_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "Start",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Get_SP",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(int(activity('Get_SP').output.firstRow.is_execute_sp), 1)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "sp_updateerror_log_copy1",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "Stored procedure1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[metadata].[sp_update_pipeline_log]",
+											"storedProcedureParameters": {
+												"error_msg": {
+													"value": "exce target sp list sucess",
+													"type": "String"
+												},
+												"module_name": {
+													"value": {
+														"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"pipeline_name": {
+													"value": "",
+													"type": "String"
+												},
+												"src_system": {
+													"value": "",
+													"type": "String"
+												},
+												"src_table_name": {
+													"value": "",
+													"type": "String"
+												},
+												"status": {
+													"value": "",
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "ls_sqlserver_datalake",
+											"type": "LinkedServiceReference",
+											"parameters": {
+												"db_name": "meta_config"
+											}
+										}
+									},
+									{
+										"name": "Stored procedure1",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[metadata].[sp_Get_SMGT_data_loaddate]",
+											"storedProcedureParameters": {
+												"SourceSchema": {
+													"value": {
+														"value": "@activity('Get_SP').output.firstRow.target_schema_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"SourceTable": {
+													"value": {
+														"value": "@activity('Get_SP').output.firstRow.target_table_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"TargetSchema": {
+													"value": {
+														"value": "@activity('Get_SP').output.firstRow.target_schema_name",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"TargetTable": {
+													"value": {
+														"value": "@replace(activity('Get_SP').output.firstRow.target_table_name, '_K001_D', '_K001_DELTA')",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "ls_sqlserver_gmat",
+											"type": "LinkedServiceReference",
+											"parameters": {
+												"db_name": "GMAT"
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "exec data sync",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copydata",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_sync_WF_ENT_0SD_O01D_3W]",
+								"storedProcedureParameters": {
+									"source_table": {
+										"value": {
+											"value": "@item().src_table_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_gmat",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "gmat"
+								}
+							}
+						},
+						{
+							"name": "sp_update_log_syncdata",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "exec data sync",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_update_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "sync sucess",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "sp_update_log_sync_error",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "exec data sync",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[metadata].[sp_update_pipeline_log]",
+								"storedProcedureParameters": {
+									"error_msg": {
+										"value": {
+											"value": "@{REPLACE(activity('exec data sync').Error.Message,'''','')}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"module_name": {
+										"value": {
+											"value": "@{concat(pipeline().RunId,'-',item().src_table_name)}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipeline_name": {
+										"value": "",
+										"type": "String"
+									},
+									"src_system": {
+										"value": "",
+										"type": "String"
+									},
+									"src_table_name": {
+										"value": "",
+										"type": "String"
+									},
+									"status": {
+										"value": "",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_datalake",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"db_name": "meta_config"
+								}
+							}
+						},
+						{
+							"name": "Get_SP",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "exec data sync",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderStoredProcedureName": "[metadata].[get_metadata]",
+									"storedProcedureParameters": {
+										"is_init_only": {
+											"type": "Int32",
+											"value": {
+												"value": "@pipeline().parameters.is_init_only",
+												"type": "Expression"
+											}
+										},
+										"project": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.project",
+												"type": "Expression"
+											}
+										},
+										"schedule": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.schedule",
+												"type": "Expression"
+											}
+										},
+										"sync_type": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.sync_type",
+												"type": "Expression"
+											}
+										},
+										"src_system": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.src_system",
+												"type": "Expression"
+											}
+										},
+										"target_system": {
+											"type": "String",
+											"value": {
+												"value": "@pipeline().parameters.target_system",
+												"type": "Expression"
+											}
+										}
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "ds_sqlsever_datalake",
+									"type": "DatasetReference",
+									"parameters": {
+										"tb_name": ".",
+										"schema": ".",
+										"db_name": "meta_config"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"is_init_only": {
+				"type": "int",
+				"defaultValue": 0
+			},
+			"project": {
+				"type": "string",
+				"defaultValue": "bods_JF_ENT_DELTA_3W"
+			},
+			"schedule": {
+				"type": "string",
+				"defaultValue": "mon_to_fri_onceday_0809"
+			},
+			"sync_type": {
+				"type": "string",
+				"defaultValue": "full"
+			},
+			"target_system": {
+				"type": "string",
+				"defaultValue": "gmat"
+			},
+			"src_system": {
+				"type": "string",
+				"defaultValue": "bw"
+			}
+		},
+		"variables": {
+			"sp_list": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "BODS Ingest/Bods_Ingest_Standard/Pipeline_Archived"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-22T10:49:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

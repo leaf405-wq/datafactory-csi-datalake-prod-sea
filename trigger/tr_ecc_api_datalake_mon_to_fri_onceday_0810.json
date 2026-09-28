@@ -1,0 +1,39 @@
+{
+	"name": "tr_ecc_api_datalake_mon_to_fri_onceday_0810",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "EXEC_POF_ALL_TRAN_LOAD_MASTER",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-28T07:17:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						10
+					],
+					"hours": [
+						8
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

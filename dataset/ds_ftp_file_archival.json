@@ -1,0 +1,79 @@
+{
+	"name": "ds_ftp_file_archival",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Files01_Server",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "String"
+			},
+			"TargetFolder": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation",
+				"fileName": {
+					"value": "@concat('Archival_',formatDateTime(utcNow(),'yyyyMMdd'),'/',dataset().FileName)",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "Prod",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": "|",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "CTRY",
+				"type": "String"
+			},
+			{
+				"name": "CTRYDESC",
+				"type": "String"
+			},
+			{
+				"name": "PLCTRY",
+				"type": "String"
+			},
+			{
+				"name": "PLCTRYDESC",
+				"type": "String"
+			},
+			{
+				"name": "CLUSTER",
+				"type": "String"
+			},
+			{
+				"name": "CLUSTERDESC",
+				"type": "String"
+			},
+			{
+				"name": "SUBREG",
+				"type": "String"
+			},
+			{
+				"name": "SUBREGDESC",
+				"type": "String"
+			},
+			{
+				"name": "REGION",
+				"type": "String"
+			},
+			{
+				"name": "REGIONDESC",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

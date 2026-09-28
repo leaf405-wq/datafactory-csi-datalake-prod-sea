@@ -1,0 +1,35 @@
+{
+	"name": "Customerorderparty_dependent_weekly",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_DeltaLoad_Dependent",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "15"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 7,
+				"startTime": "2024-06-15T12:44:00",
+				"timeZone": "India Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						14
+					]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,44 @@
+{
+	"name": "tr_bw_gmat_sun_onceday_0838",
+	"properties": {
+		"description": "Sun once a day AM 08:38",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "JF_ENT_COPA",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods_JF_ENT_COPA",
+					"schedule": "sun_onceday_0838",
+					"sync_type": "full",
+					"target_system": "gmat",
+					"src_system": "bw"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-07-02T08:17:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						38
+					],
+					"hours": [
+						8
+					],
+					"weekDays": [
+						"Sunday"
+					]
+				}
+			}
+		}
+	}
+}

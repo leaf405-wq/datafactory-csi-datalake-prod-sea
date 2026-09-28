@@ -1,0 +1,43 @@
+{
+	"name": "tr_ecc_md_stg_1st_of_everymonth",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "ECC_Ingest_Md_Stg_Full",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"is_init_only": 0,
+					"project": "bods",
+					"schedule": "1st_of_everymonth",
+					"sync_type": "full",
+					"target_system": "cs-md_stg",
+					"src_system": "ecc"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Month",
+				"interval": 1,
+				"startTime": "2026-05-13T07:33:00",
+				"timeZone": "China Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						0
+					],
+					"monthDays": [
+						1
+					]
+				}
+			}
+		}
+	}
+}

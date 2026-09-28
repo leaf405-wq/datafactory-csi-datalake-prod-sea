@@ -1,0 +1,285 @@
+{
+	"name": "Standard_ServiceRequestAttachmentLoad_Parameterized",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup for mapping",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "Select * from [Stage].[LookupTable_Attachments]  where Source_Collection = 'ServiceRequestAttachmentFolder'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": ".",
+							"Schema": "."
+						}
+					}
+				}
+			},
+			{
+				"name": "Until for iteration",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Set variable EndDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(formatdatetime(adddays(variables('StartDate'),-1),'dd'),formatdatetime(pipeline().parameters.StartDate,'dd'))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy data to sql",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"paginationRules": {
+										"AbsoluteUrl": {
+											"value": "$.d.__next",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"value": "@json(activity('Lookup for mapping').output.firstRow.Mapping)",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SapC4CStandardParameterizedRestDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"SourceCollection": {
+											"value": "ServiceRequestCollection?$filter=EntityLastChangedOn ge datetimeoffset'@{variables('StartDate')}' and EntityLastChangedOn le datetimeoffset'@{variables('EndDate')}'&$expand=ServiceRequestAttachmentFolder",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SqlServerParameterizedDataset",
+									"type": "DatasetReference",
+									"parameters": {
+										"Table_Name": "C4C_ServiceRequestAttachmentFolder",
+										"Schema": "dmp"
+									}
+								}
+							]
+						},
+						{
+							"name": "Set variable StartDate1",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Copy data to sql",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "StartDate",
+								"value": {
+									"value": "@variables('EndDate')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set variable EndDate1",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set variable StartDate1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "EndDate",
+								"value": {
+									"value": "@addhours(variables('StartDate'),3)",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "7.00:00:00"
+				}
+			},
+			{
+				"name": "Set variable EndDate",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set variable StartDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "EndDate",
+					"value": {
+						"value": "@addhours(variables('StartDate'),3)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable StartDate",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup for mapping",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "StartDate",
+					"value": {
+						"value": "@formatdatetime(pipeline().parameters.StartDate,'yyyy-MM-ddTHH:mm:ssZ')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Stored procedure deleteinsert",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Until for iteration",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[Stage].[SP_DeleteInsert_Attachment]",
+					"storedProcedureParameters": {
+						"columname": {
+							"value": {
+								"value": "EntityLastChangedOn",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"DeltaType": {
+							"value": {
+								"value": "C",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TableName": {
+							"value": {
+								"value": "C4C_ServiceRequestAttachmentFolder",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"StartDate": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"EndDate": {
+				"type": "String"
+			},
+			"StartDate": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Standard"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-03T08:23:33Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

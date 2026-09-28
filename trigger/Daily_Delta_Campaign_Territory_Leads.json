@@ -1,0 +1,50 @@
+{
+	"name": "Daily_Delta_Campaign_Territory_Leads",
+	"properties": {
+		"description": "Daily Delta Campaign Territory Leads",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Standard_FullLoad",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "8",
+					"DeltaType": "AND DeltaType = 'F'"
+				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "Delta_Load_Master_Pipeline",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"Batch": "8"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2021-07-28T06:57:00",
+				"timeZone": "Eastern Standard Time",
+				"schedule": {
+					"hours": [
+						9
+					],
+					"weekDays": [
+						"Monday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday",
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

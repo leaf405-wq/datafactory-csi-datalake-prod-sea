@@ -1,0 +1,312 @@
+{
+	"name": "MasterControl_AbortedForms",
+	"properties": {
+		"description": "Extract all Aborted Forms from Master Control.",
+		"activities": [
+			{
+				"name": "AbortedForms",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Web1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Destination",
+						"value": "@{'dbo'}.@{'Mastercontrol_AbortedForms_Delta'}"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"methodName\": \"search\",','\"serviceName\": \"SearchService\",','\"arguments\": { \"list\": \"forms\",','\"connectionID\":\"',activity('Web1').output.result,'\",\"searchParameters\": {\"message\": \"\",','\"parameters\": [{\"OPERATOR\": \"IS\",','\"CUSTOM\": \"FALSE\",','\"LABEL\": \"VAULT\",','\"IDENTIFIER\": \"I.VAULT_NAME\",','\"VALUE\": \"ABORTED FORMS\",','\"LOGIC\": \"AND\"}]}}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['columns'][0]['value']"
+								},
+								"sink": {
+									"name": "TEMPLATE_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][1]['value']"
+								},
+								"sink": {
+									"name": "TEMPLATE_TYPE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][2]['value']"
+								},
+								"sink": {
+									"name": "INFO_CARD_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][3]['value']"
+								},
+								"sink": {
+									"name": "DOCUMENT_NUM",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][4]['value']"
+								},
+								"sink": {
+									"name": "REVISION_NM",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][5]['value']"
+								},
+								"sink": {
+									"name": "TITLE_NM",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][6]['value']"
+								},
+								"sink": {
+									"name": "VAULT_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][7]['value']"
+								},
+								"sink": {
+									"name": "LOCK_DT",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][8]['value']"
+								},
+								"sink": {
+									"name": "CHECKOUT_EMPLOYEE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][9]['value']"
+								},
+								"sink": {
+									"name": "PARENT_TYPE_NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][10]['value']"
+								},
+								"sink": {
+									"name": "EMPLOYEE_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][11]['value']"
+								},
+								"sink": {
+									"name": "CHECKOUT_DT",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][12]['value']"
+								},
+								"sink": {
+									"name": "ACCESS_CATEGORY_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][13]['value']"
+								},
+								"sink": {
+									"name": "DOCUMENT_TYPE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['columns'][14]['value']"
+								},
+								"sink": {
+									"name": "TYPE_ID",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']['rows']",
+						"mapComplexValuesToString": false
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "Mastercontrol_AbortedForms_Delta",
+							"Schema": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "Web1",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Script1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "@pipeline().globalParameters.mastercontrol_url",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "SelfHostedIntegrationRuntimeNew",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"serviceName": "ConnectionService",
+						"methodName": "connectWithApiKey",
+						"arguments": {
+							"apiKey": "8be95316-3f36-4dfa-9e4b-5756de9d4b34",
+							"logoutCurrentWebConnection": false
+						}
+					}
+				}
+			},
+			{
+				"name": "Script1",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "truncate table dbo.[Mastercontrol_AbortedForms_Delta] "
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Stored procedure1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "AbortedForms",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[sp_MasterControl_AbortedForms]"
+				},
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "MasterControl"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-15T08:45:55Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

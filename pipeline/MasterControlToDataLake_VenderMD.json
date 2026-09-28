@@ -1,0 +1,165 @@
+{
+	"name": "MasterControlToDataLake_VenderMD",
+	"properties": {
+		"activities": [
+			{
+				"name": "Web1",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Script1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "@pipeline().globalParameters.mastercontrol_url",
+						"type": "Expression"
+					},
+					"body": {
+						"serviceName": "ConnectionService",
+						"methodName": "connectWithApiKey",
+						"arguments": {
+							"apiKey": "8be95316-3f36-4dfa-9e4b-5756de9d4b34",
+							"logoutCurrentWebConnection": false
+						}
+					}
+				}
+			},
+			{
+				"name": "Script1",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "SqlServerLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "truncate table dbo.[Mastercontrol_VendorMD] "
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Vendor",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Web1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:20:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "@concat('{\"serviceName\": \"DataStructureService\",','\"methodName\": \"getExternalDataStructureData\",','\"arguments\": {\"connectionID\":\"',activity('Web1').output.result,'\",\n    \"externalDataStructureName\": \"GETSUPPLIERID\"','}}')",
+							"type": "Expression"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['SUPPLIER_ID']"
+								},
+								"sink": {
+									"name": "SUPPLIER_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['DOCUMENT_NUM']"
+								},
+								"sink": {
+									"name": "DOCUMENT_NUM",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['NAME']"
+								},
+								"sink": {
+									"name": "NAME",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['result']",
+						"mapComplexValuesToString": false
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MasterControlDatasetProd",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlServerParameterizedDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"Table_Name": "MasterControl_VendorMD",
+							"Schema": "dbo"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "MasterControl"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-08-15T08:50:15Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
